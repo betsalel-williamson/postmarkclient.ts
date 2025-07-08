@@ -2,45 +2,33 @@ import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import { server } from './mocks/server';
 import { http, HttpResponse } from 'msw';
 import { run, main } from './index';
-import * as duckdb from 'duckdb';
+import { DuckDBInstance } from '@duckdb/node-api';
 import * as fs from 'fs';
 
 describe('CLI', () => {
   const testDbPath = './test_business_cards_cli.duckdb';
 
-  beforeAll(
-    () =>
-      new Promise<void>((resolve, reject) => {
-        process.env.POSTMARK_SERVER_TOKEN = 'test-token';
+  beforeAll(async () => {
+    process.env.POSTMARK_SERVER_TOKEN = 'test-token';
 
-        // Clean up old test database if it exists
-        if (fs.existsSync(testDbPath)) {
-          fs.unlinkSync(testDbPath);
-        }
+    // Clean up old test database if it exists
+    if (fs.existsSync(testDbPath)) {
+      fs.unlinkSync(testDbPath);
+    }
 
-        const db = new duckdb.Database(testDbPath, (err: Error | null) => {
-          if (err) return reject(err);
-
-          db.exec(
-            'CREATE TABLE stg_cards_data (first_name VARCHAR, last_name VARCHAR, email VARCHAR, cell VARCHAR, phone VARCHAR, company VARCHAR, title VARCHAR, products VARCHAR, notes VARCHAR);',
-            (err: Error | null) => {
-              if (err) return reject(err);
-
-              db.exec(
-                "INSERT INTO stg_cards_data VALUES ('John', 'Doe', 'john.doe@example.com', '123-456-7890', null, 'ACME Inc', 'CEO', 'cat', 'Test note')",
-                (err: Error | null) => {
-                  if (err) return reject(err);
-                  db.close((closeErr: Error | null) => {
-                    if (closeErr) return reject(closeErr);
-                    resolve();
-                  });
-                }
-              );
-            }
-          );
-        });
-      })
-  );
+    const instance = await DuckDBInstance.create(testDbPath);
+    const connection = await instance.connect();
+    try {
+      await connection.run(
+        'CREATE TABLE stg_cards_data (first_name VARCHAR, last_name VARCHAR, email VARCHAR, cell VARCHAR, phone VARCHAR, company VARCHAR, title VARCHAR, products VARCHAR, notes VARCHAR);'
+      );
+      await connection.run(
+        "INSERT INTO stg_cards_data VALUES ('John', 'Doe', 'john.doe@example.com', '123-456-7890', null, 'ACME Inc', 'CEO', 'cat', 'Test note')"
+      );
+    } finally {
+      await connection.disconnectSync();
+    }
+  });
 
   afterAll(() => {
     if (fs.existsSync(testDbPath)) {

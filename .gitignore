@@ -20,6 +20,7 @@ vale.json
 
 *.duckdb
 *.duckdb.bak
+*.duckdb.wal
 
 junit.xml
 job-logs.txt
