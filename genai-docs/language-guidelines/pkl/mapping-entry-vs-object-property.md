@@ -2,7 +2,7 @@
 
 - **Error**: `Object of type 'Mapping' cannot have a property (other than 'default').`
 
-- **Cause**: This error occurs when you try to assign a generic Pkl object (created with `new { ... }`) as a value within a `Mapping` entry, instead of providing a value that matches the mapping's declared type. A `Mapping` can only contain *entries* (for example, `["key"] = value`), not *properties* (for example, `key = value`). The `new { prop = "value" }` syntax creates a standard object with a property, which isn't a `Mapping` instance itself.
+- **Cause**: This error occurs when you try to assign a generic Pkl object (created with `new { ... }`) as a value within a `Mapping` entry, instead of providing a value that matches the mapping's declared type. A `Mapping` can only contain _entries_ (for example, `["key"] = value`), not _properties_ (for example, `key = value`). The `new { prop = "value" }` syntax creates a standard object with a property, which isn't a `Mapping` instance itself.
 
 - **Incorrect Example**:
 

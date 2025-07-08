@@ -4,7 +4,7 @@ import { Lead } from '../services/leadService';
 
 describe('url', () => {
   it('should build a URL with autofill and UTM parameters', () => {
-    const baseUrl = "https://example.com/page?utm_source=postmark&utm_medium=email";
+    const baseUrl = 'https://example.com/page?utm_source=postmark&utm_medium=email';
     const lead: Lead = {
       first_name: 'Jane',
       last_name: 'Doe',
@@ -13,7 +13,7 @@ describe('url', () => {
       company: 'Example Corp',
       title: 'Developer',
       product_interest: 'dog',
-      notes: 'Test notes here'
+      notes: 'Test notes here',
     };
 
     const finalUrl = buildOptInUrl(baseUrl, 'b2b_campaign_1', lead);

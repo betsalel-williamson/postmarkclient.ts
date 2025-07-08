@@ -1,12 +1,12 @@
 # Define glob expressions to use (only valid at root)
 globs:
-  - "**/*.md"
+  - '**/*.md'
 
 # Disable rules for specific files or directories
 ignores:
-  - "node_modules/**"
-  - "packages/**/dist/**"
-  - "**/*.pcf"
+  - 'node_modules/**'
+  - 'packages/**/dist/**'
+  - '**/*.pcf'
   - GEMINI.md
 
 # Ignore files referenced by .gitignore (only valid at root)
@@ -16,6 +16,5 @@ fix: true
 
 config:
   MD033:
-    allowed_elements: ["p", "a", "img"]
+    allowed_elements: ['p', 'a', 'img']
   MD013: false
-

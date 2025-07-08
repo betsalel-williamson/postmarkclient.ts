@@ -35,61 +35,60 @@ Examples are for verifying the structure of a Pkl object. They work by comparing
 
 1. **Write the Test**: Create a test module that imports the module you want to test and defines an `examples` block.
 
-    ```pkl
-    // test_my_ast.pkl
-    amends "pkl:test"
-    import "my_ast.pkl" as MyAst
+   ```pkl
+   // test_my_ast.pkl
+   amends "pkl:test"
+   import "my_ast.pkl" as MyAst
 
-    examples {
-      ["The complete AST structure"] {
-        // This is the value we want to snapshot
-        MyAst.theMainObject
-      }
-    }
-    ```
+   examples {
+     ["The complete AST structure"] {
+       // This is the value we want to snapshot
+       MyAst.theMainObject
+     }
+   }
+   ```
 
 2. **First Run (Generate Golden File)**: Run the test for the first time.
 
-    ```shell
-    $ pkl test test_my_ast.pkl
-    ✍️ The complete AST structure
-    1 examples written
-    ```
+   ```shell
+   $ pkl test test_my_ast.pkl
+   ✍️ The complete AST structure
+   1 examples written
+   ```
 
-    This creates a new file, `test_my_ast.pkl-expected.pcf`, containing the evaluated result. You should check this file into version control.
+   This creates a new file, `test_my_ast.pkl-expected.pcf`, containing the evaluated result. You should check this file into version control.
 
 3. **Subsequent Runs (Verify)**: Running the test again compares the current output to the golden file.
 
-    ```shell
-    $ pkl test test_my_ast.pkl
-    ✔ The complete AST structure
-    100.0% tests pass
-    ```
+   ```shell
+   $ pkl test test_my_ast.pkl
+   ✔ The complete AST structure
+   100.0% tests pass
+   ```
 
 4. **Handle Failures**: If you change `my_ast.pkl` in a way that alters the output, the test will fail. Pkl creates a `test_my_ast.pkl-actual.pcf` file. Use `diff` to see the changes.
 
-    ```shell
-    diff -u test_my_ast.pkl-expected.pcf test_my_ast.pkl-actual.pcf
-    ```
+   ```shell
+   diff -u test_my_ast.pkl-expected.pcf test_my_ast.pkl-actual.pcf
+   ```
 
 5. **Update Golden File**: If the change was intentional, update the golden file using the `--overwrite` flag.
 
-    ```shell
-    pkl test --overwrite test_my_ast.pkl
-    ```
+   ```shell
+   pkl test --overwrite test_my_ast.pkl
+   ```
 
 ### CI/Automation: Handling the `--overwrite` Exit Code
 
 **CRITICAL:** When using `pkl test --overwrite` in an automated script (like CI/CD), it's important to understand its exit code behavior.
 
-- **The Behavior**: On the *very first run* for a new test (when no `.pkl-expected.pcf` file exists), `pkl test --overwrite` will write the golden file and then **exit with a non-zero status code**.
+- **The Behavior**: On the _very first run_ for a new test (when no `.pkl-expected.pcf` file exists), `pkl test --overwrite` will write the golden file and then **exit with a non-zero status code**.
 
 - **The Intent**: This is intentional. It signals that a new baseline was created and should be reviewed and committed. A simple script that only checks for a `0` exit code will fail at this step.
 
 - **The Solution**: The robust pattern for automation is a two-step process within a single script:
-
-    1. **Write/Update Baseline**: Run `pkl test` with the `--overwrite` flag, but ignore a potential non-zero exit code. Then, verify that the golden file was actually created.
-    2. **Verify Consistency**: Immediately run `pkl test` again *without* the `--overwrite` flag. This second command MUST now pass with a `0` exit code, confirming the AST is consistent with its baseline.
+  1. **Write/Update Baseline**: Run `pkl test` with the `--overwrite` flag, but ignore a potential non-zero exit code. Then, verify that the golden file was actually created.
+  2. **Verify Consistency**: Immediately run `pkl test` again _without_ the `--overwrite` flag. This second command MUST now pass with a `0` exit code, confirming the AST is consistent with its baseline.
 
 - **Example Script Pattern**:
 

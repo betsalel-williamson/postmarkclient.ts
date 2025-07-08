@@ -1,4 +1,3 @@
-
 # Conditional logic
 
 - **Rule**: Pkl doesn't have a `switch` statement.

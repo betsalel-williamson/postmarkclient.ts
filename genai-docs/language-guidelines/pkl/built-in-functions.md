@@ -1,4 +1,3 @@
-
 # Built-in Functions
 
 - **Rule**: The `read()` function is a built-in. It does **not** require `import "pkl:file"`.

@@ -15,7 +15,10 @@ import { getLeads } from './services/leadService';
 import { buildOptInUrl } from './utils/url';
 import { ServerClient } from 'postmark';
 
-export async function run(argv: { from: string, campaign: string, template: string }, dbPath?: string) {
+export async function run(
+  argv: { from: string; campaign: string; template: string },
+  dbPath?: string
+) {
   const serverToken = process.env.POSTMARK_SERVER_TOKEN;
 
   if (!serverToken) {
@@ -32,7 +35,11 @@ export async function run(argv: { from: string, campaign: string, template: stri
       continue;
     }
 
-    const url = buildOptInUrl('https://homelifepet.com/pages/b2b-marketing-opt-in', argv.campaign, lead);
+    const url = buildOptInUrl(
+      'https://homelifepet.com/pages/b2b-marketing-opt-in',
+      argv.campaign,
+      lead
+    );
 
     await client.sendEmailWithTemplate({
       From: argv.from,
@@ -41,7 +48,7 @@ export async function run(argv: { from: string, campaign: string, template: stri
       TemplateModel: {
         ...lead,
         action_url: url,
-      }
+      },
     });
 
     console.log(`Email sent to ${lead.email}`);
@@ -57,12 +64,21 @@ export async function main() {
         (yargs) => {
           return yargs
             .positional('from', { describe: 'The from email address', type: 'string' })
-            .positional('campaign', { describe: 'The campaign name (for UTM tracking)', type: 'string' })
-            .positional('template', { describe: 'The Postmark template alias to use', type: 'string' })
+            .positional('campaign', {
+              describe: 'The campaign name (for UTM tracking)',
+              type: 'string',
+            })
+            .positional('template', {
+              describe: 'The Postmark template alias to use',
+              type: 'string',
+            })
             .option('dbPath', { describe: 'Path to the DuckDB database file', type: 'string' });
         },
         async (argv) => {
-          await run(argv as { from: string, campaign: string, template: string }, argv.dbPath as string | undefined);
+          await run(
+            argv as { from: string; campaign: string; template: string },
+            argv.dbPath as string | undefined
+          );
         }
       )
       .demandCommand(1, 'You need at least one command before moving on')
@@ -81,4 +97,3 @@ export async function main() {
 if (require.main === module) {
   main();
 }
-

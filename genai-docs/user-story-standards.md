@@ -18,15 +18,15 @@ User stories are stored in the `work_items/user_stories/` directory, grouped by 
 
 ```markdown
 ---
-title: "{User Story Title}"
-project_name: {project_name}
-epic_name: {epic_name}
-story_id: {story_id}
-labels: {comma-separated-labels}
-status: {status}
-date_created: {iso date LA timezone}
-date_verified_completed: {iso date LA timezone}
-touched: {a star is added here every day that we try to work on this story}
+title: '{User Story Title}'
+project_name: { project_name }
+epic_name: { epic_name }
+story_id: { story_id }
+labels: { comma-separated-labels }
+status: { status }
+date_created: { iso date LA timezone }
+date_verified_completed: { iso date LA timezone }
+touched: { a star is added here every day that we try to work on this story }
 ---
 
 - **As a** {User Persona},

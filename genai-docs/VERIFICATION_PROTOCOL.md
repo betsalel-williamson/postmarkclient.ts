@@ -71,7 +71,7 @@ This is a living document. Add new test scenarios as new instructions are added.
 - **Prompt**
   "These two validation functions look almost identical. Can you create a single helper to abstract them?"
 - **Expected Outcome**
-  The AI analyzes the functions. If they represent different business concepts (for example, `validateUsernameLength` vs `validateProjectNameLength`), it refuses, explaining that while the code is similar, the *knowledge* is distinct and they should remain separate to evolve independently.
+  The AI analyzes the functions. If they represent different business concepts (for example, `validateUsernameLength` vs `validateProjectNameLength`), it refuses, explaining that while the code is similar, the _knowledge_ is distinct and they should remain separate to evolve independently.
 - **Source**
   `genai-docs/system-prompt.md`
   `genai-docs/principles.md`

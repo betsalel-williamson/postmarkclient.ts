@@ -43,15 +43,15 @@ Consult `genai-docs/kentbeck.md` for detailed TDD and "Tidy First" methodology g
 Apply the scientific method to all problem-solving, learning, and improvement initiatives. This systematic approach ensures rigor and data-driven decision-making.
 
 1. **Observation**
-    Identify a problem or an area for improvement through careful observation of system behavior, user feedback, or process inefficiencies.
+   Identify a problem or an area for improvement through careful observation of system behavior, user feedback, or process inefficiencies.
 2. **Hypothesis**
-    Formulate a testable hypothesis that proposes a potential solution or explanation for the observed phenomenon. The hypothesis should be specific and falsifiable.
+   Formulate a testable hypothesis that proposes a potential solution or explanation for the observed phenomenon. The hypothesis should be specific and falsifiable.
 3. **Experimentation**
-    Design and execute experiments (for example, A/B tests, controlled deployments, targeted code changes) to test the hypothesis. Design experiments to yield measurable results.
+   Design and execute experiments (for example, A/B tests, controlled deployments, targeted code changes) to test the hypothesis. Design experiments to yield measurable results.
 4. **Analysis**
-    Collect and analyze data from the experiments. Compare the results with the initial hypothesis and expected outcomes.
+   Collect and analyze data from the experiments. Compare the results with the initial hypothesis and expected outcomes.
 5. **Conclusion**
-    Draw conclusions based on the analysis. Support or refute the hypothesis. Document findings and identify next steps, which may include further experimentation or integration of successful changes.
+   Draw conclusions based on the analysis. Support or refute the hypothesis. Document findings and identify next steps, which may include further experimentation or integration of successful changes.
 
 ### Code & Language Best Practices
 
@@ -71,7 +71,7 @@ These directives and tool usage protocols apply continuously throughout all oper
 #### General Operational Guidelines
 
 - **Communication Style**
-  Be direct and concise. Maintain a coaching tone. Consult ``genai-docs/secondary-protocols.md`` for additional communication mandates.
+  Be direct and concise. Maintain a coaching tone. Consult `genai-docs/secondary-protocols.md` for additional communication mandates.
 - **Quality**
   All new features or components must include user stories, tasks, comprehensive unit tests, and adhere to the AI usage guidelines.
 - **Provide Feedback**
@@ -82,11 +82,11 @@ These directives and tool usage protocols apply continuously throughout all oper
 Perform code modifications using the provided tools. Adhere to principles of minimal diff and idiomatic changes.
 
 1. **Minimal Diff**
-    When modifying an existing file, aim to produce the smallest possible logical change. Treat the user-provided source as the absolute source of truth for structure, style, and comments. Don't regenerate files from internal knowledge. Your output must be a faithful copy of the original with only the necessary surgical changes applied.
+   When modifying an existing file, aim to produce the smallest possible logical change. Treat the user-provided source as the absolute source of truth for structure, style, and comments. Don't regenerate files from internal knowledge. Your output must be a faithful copy of the original with only the necessary surgical changes applied.
 2. **Format**
-    Provide all code changes within a single, complete, and executable bash script.
+   Provide all code changes within a single, complete, and executable bash script.
 3. **Replacement Method**
-    Use `cat > path/to/file << 'EOF'` for all file creation or replacement. **Don't** use `sed`, `awk`, `patch`, or similar tools.
+   Use `cat > path/to/file << 'EOF'` for all file creation or replacement. **Don't** use `sed`, `awk`, `patch`, or similar tools.
 
 ## Operational Protocol: Multi-Stage Development Process
 
@@ -97,35 +97,35 @@ This section outlines the ordered steps for performing development tasks. Follow
 This phase involves an interactive dialogue with the user to fully understand the request, gather all necessary requirements, and define a comprehensive work item (user story or task). The goal is to provide clarity and provide a solid foundation for subsequent development phases.
 
 1. **Engage in Dialogue**
-    Initiate an interactive conversation to clarify ambiguous requests, ask probing questions for missing details, and confirm the scope of the work. This dialogue continues until all requirements are clear and agreed upon.
+   Initiate an interactive conversation to clarify ambiguous requests, ask probing questions for missing details, and confirm the scope of the work. This dialogue continues until all requirements are clear and agreed upon.
 2. **Analyze and Plan Internally**
-    During the dialogue, internally perform analysis of the existing codebase (using tools like `search_file_content`, `glob`, `read_file`) and formulate a high-level plan for the implementation. This internal planning informs the questions asked and the structure of the proposed work item.
+   During the dialogue, internally perform analysis of the existing codebase (using tools like `search_file_content`, `glob`, `read_file`) and formulate a high-level plan for the implementation. This internal planning informs the questions asked and the structure of the proposed work item.
 3. **Propose Structured Plan**
-    Based on the gathered requirements and internal analysis, propose a structured plan for the current phase or work item. This plan will include the identified work item (user story or task), the specific goal for this phase, relevant guidelines, and any inferred constraints. Present this plan to the user for review and explicit confirmation before proceeding with any implementation.
+   Based on the gathered requirements and internal analysis, propose a structured plan for the current phase or work item. This plan will include the identified work item (user story or task), the specific goal for this phase, relevant guidelines, and any inferred constraints. Present this plan to the user for review and explicit confirmation before proceeding with any implementation.
 
 ### Phase 2: Implementation (Test-Driven Development)
 
 Implement changes following the Test-Driven Development (TDD) cycle. This helps improve code quality and correctness. Automated verification and validation are integral to this phase.
 
 1. **Verify and Load Work Item**
-    Before beginning implementation, verify the existence of the specified work item (user story or task) and load its content to make sure all requirements and context are available.
+   Before beginning implementation, verify the existence of the specified work item (user story or task) and load its content to make sure all requirements and context are available.
 2. **Write Failing Test (Red)**
-    Write a test that defines a small increment of functionality and fails when executed. Don't write production code before a failing test exists.
+   Write a test that defines a small increment of functionality and fails when executed. Don't write production code before a failing test exists.
 3. **Write Minimal Code (Green)**
-    Write the minimum amount of production code required to make the failing test pass.
+   Write the minimum amount of production code required to make the failing test pass.
 4. **Refactor (Iterative Red-Green Cycles)**
-    This step represents the iterative process of executing multiple Red-Green cycles until the entire user story or task is fully implemented and completed. Once a test is passing, review the code for opportunities to improve its design, readability, or efficiency. Refactoring shouldn't change external behavior, and all tests should continue to pass. This cycle continues until the work item is complete. This also includes running automated tests and quality checks (linting, type-checking) as part of each Red-Green cycle to guarenttee continuous verification.
+   This step represents the iterative process of executing multiple Red-Green cycles until the entire user story or task is fully implemented and completed. Once a test is passing, review the code for opportunities to improve its design, readability, or efficiency. Refactoring shouldn't change external behavior, and all tests should continue to pass. This cycle continues until the work item is complete. This also includes running automated tests and quality checks (linting, type-checking) as part of each Red-Green cycle to guarenttee continuous verification.
 
 ### Phase 3: Propose Commit
 
 After the work item is fully implemented and passes all automated checks, propose the changes for commit.
 
 1. **Propose Commit**
-    Propose a draft commit message following conventional commit guidelines. This signifies the completion of the work item and its readiness for integration into the codebase.
+   Propose a draft commit message following conventional commit guidelines. This signifies the completion of the work item and its readiness for integration into the codebase.
 
 ### Phase 4: Human-in-the-loop experiential review
 
 This final phase involves the human-in-the-loop's experiential review of the deployed functionality to confirm true value-add and desired behavior.
 
 1. **Experiential Review**
-    The user will interact with the implemented feature in a deployed environment to verify its functionality, usability, and overall impact. This step is crucial for confirming that the system operates as described by the user story and tasks.
+   The user will interact with the implemented feature in a deployed environment to verify its functionality, usability, and overall impact. This step is crucial for confirming that the system operates as described by the user story and tasks.

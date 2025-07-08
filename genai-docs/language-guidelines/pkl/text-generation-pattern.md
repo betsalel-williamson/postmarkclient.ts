@@ -1,4 +1,3 @@
-
 # Text Generation Pattern
 
 - **Rationale**: To generate a raw text file (like source code), we use a standard pattern that works with the `pkl eval -f text` command.

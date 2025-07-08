@@ -1,7 +1,7 @@
 # `when` for Conditional Members vs. `if` for Conditional Values
 
 - **Rule**: Use the `when` keyword to conditionally include properties or elements in an object or listing. `when` is a statement that controls the structure of the object itself.
-- **Rule**: Use an `if`/`else` expression when you need to conditionally determine the *value* of a property. `if` is an expression that returns a value.
+- **Rule**: Use an `if`/`else` expression when you need to conditionally determine the _value_ of a property. `if` is an expression that returns a value.
 
 - **`when` Example (Structural)**:
 

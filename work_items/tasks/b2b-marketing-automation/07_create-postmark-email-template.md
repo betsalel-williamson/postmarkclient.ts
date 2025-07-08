@@ -1,13 +1,13 @@
 ---
-title: "Create Postmark Email Template"
-project_name: "postmark-cli"
-epic_name: "b2b-marketing-automation"
-task_id: "07"
-labels: "email, postmark, design"
-status: "todo"
-date_created: "2025-07-08T15:12:33+0000"
-date_verified_completed: ""
-touched: "*"
+title: 'Create Postmark Email Template'
+project_name: 'postmark-cli'
+epic_name: 'b2b-marketing-automation'
+task_id: '07'
+labels: 'email, postmark, design'
+status: 'todo'
+date_created: '2025-07-08T15:12:33+0000'
+date_verified_completed: ''
+touched: '*'
 ---
 
 ## Task

@@ -1,13 +1,13 @@
 ---
-title: "B2B Lead Data Management"
-project_name: "postmark-cli"
-epic_name: "b2b-marketing-automation"
-story_id: "01"
-labels: "backend, database"
-status: "todo"
-date_created: "2025-07-08T15:12:33+0000"
-date_verified_completed: ""
-touched: "*"
+title: 'B2B Lead Data Management'
+project_name: 'postmark-cli'
+epic_name: 'b2b-marketing-automation'
+story_id: '01'
+labels: 'backend, database'
+status: 'todo'
+date_created: '2025-07-08T15:12:33+0000'
+date_verified_completed: ''
+touched: '*'
 ---
 
 - **As a** Marketing Operator,

@@ -14,7 +14,8 @@ export function buildOptInUrl(baseUrl: string, campaign: string, lead: Lead): st
   if (lead.phone_number) searchParams.set('phone_number', lead.phone_number);
   if (lead.company) searchParams.set('custom#company', lead.company);
   if (lead.title) searchParams.set('custom#title', lead.title);
-  if (lead.product_interest) searchParams.set('custom#what_type_of_products_are_you_interested_in', lead.product_interest);
+  if (lead.product_interest)
+    searchParams.set('custom#what_type_of_products_are_you_interested_in', lead.product_interest);
   if (lead.notes) searchParams.set('custom#notes', lead.notes);
 
   url.search = searchParams.toString();

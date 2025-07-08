@@ -1,13 +1,13 @@
 ---
-title: "Develop URL Generation Logic"
-project_name: "postmark-cli"
-epic_name: "b2b-marketing-automation"
-task_id: "02"
-labels: "backend, url, personalization"
-status: "todo"
-date_created: "2025-07-08T15:12:33+0000"
-date_verified_completed: ""
-touched: "*"
+title: 'Develop URL Generation Logic'
+project_name: 'postmark-cli'
+epic_name: 'b2b-marketing-automation'
+task_id: '02'
+labels: 'backend, url, personalization'
+status: 'todo'
+date_created: '2025-07-08T15:12:33+0000'
+date_verified_completed: ''
+touched: '*'
 ---
 
 ## Task

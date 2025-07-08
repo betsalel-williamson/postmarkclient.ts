@@ -1,13 +1,13 @@
 ---
-title: "Seamless Customer Experience"
-project_name: "postmark-cli"
-epic_name: "b2b-marketing-automation"
-story_id: "02"
-labels: "frontend, shopify"
-status: "todo"
-date_created: "2025-07-08T15:12:33+0000"
-date_verified_completed: ""
-touched: "*"
+title: 'Seamless Customer Experience'
+project_name: 'postmark-cli'
+epic_name: 'b2b-marketing-automation'
+story_id: '02'
+labels: 'frontend, shopify'
+status: 'todo'
+date_created: '2025-07-08T15:12:33+0000'
+date_verified_completed: ''
+touched: '*'
 ---
 
 - **As a** potential B2B Customer,

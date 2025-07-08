@@ -13,7 +13,7 @@ export default defineConfig({
         'json',
         'html',
         'lcov',
-        'text-summary'
+        'text-summary',
       ],
       reportsDirectory: 'coverage/',
     },

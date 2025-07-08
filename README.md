@@ -15,28 +15,28 @@ This project provides a command-line interface (CLI) application to automate sen
 
 1. **Clone the repository:**
 
-    ```bash
-    git clone <your-repo-url>
-    cd postmark
-    ```
+   ```bash
+   git clone <your-repo-url>
+   cd postmark
+   ```
 
 2. **Install dependencies:**
 
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
 3. **Configure your Postmark Server Token:**
-    Create a `.env` file in the root of the project and add your Postmark Server Token:
+   Create a `.env` file in the root of the project and add your Postmark Server Token:
 
-    ```dotenv
-    POSTMARK_SERVER_TOKEN=your_postmark_server_token_here
-    ```
+   ```dotenv
+   POSTMARK_SERVER_TOKEN=your_postmark_server_token_here
+   ```
 
-    *Note: This file is `.gitignore`d to prevent accidental commits of your secret token.*
+   _Note: This file is `.gitignore`d to prevent accidental commits of your secret token._
 
 4. **Ensure your DuckDB database is present:**
-    Place your `business_cards.duckdb` file in the root of the project. The application will read lead data from the `stg_cards_data` table within this database.
+   Place your `business_cards.duckdb` file in the root of the project. The application will read lead data from the `stg_cards_data` table within this database.
 
 ## Usage
 

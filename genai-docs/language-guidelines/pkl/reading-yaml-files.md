@@ -1,4 +1,3 @@
-
 # Reading YAML Files
 
 - **Rule**: When reading YAML files, use `pkl:yaml` and explicitly parse the file contents.
