@@ -8,7 +8,7 @@ export interface Lead {
   phone_number: string | null;
   company: string | null;
   title: string | null;
-  product_interest: 'cat' | 'dog' | 'cat+dog' | null;
+  product_interest: 'cat' | 'dog' | 'cat+dog' | null | undefined;
   notes: string | null;
 }
 
