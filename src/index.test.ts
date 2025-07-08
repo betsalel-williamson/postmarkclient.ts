@@ -47,7 +47,7 @@ describe('CLI', () => {
 
   it('should log an error and exit if the database does not exist', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const processExitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as (code?: number) => never);
+    const processExitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as (code?: number | string | null) => never);
 
     // Mock argv to simulate command line arguments
     process.argv = ['node', 'index.js', 'send', 'from@example.com', 'campaign', 'template', '--dbPath', './non_existent_db.duckdb'];
