@@ -39,6 +39,13 @@ Centralized repository of core engineering principles for the project.
 
 ## Code & implementation principles
 
+- **Embrace Functional & Immutable Patterns**
+  Utilize immutable data structures and functional operators (e.g., map, filter, reduce) to promote immutability, reduce side effects, and improve code readability.
+- **Prioritize Type Safety**
+  Avoid language features that disable type safety (e.g., `any` in TypeScript). For values of an unknown type, use explicit type-narrowing checks.
+- **Favor Interoperable Language Features**
+  Choose language features and patterns that are interoperable and stable across various versions of a language or different execution environments, promoting long-term maintainability and reducing compatibility issues.
+
 ## Testing & validation principles
 
 - **Comprehensive Automation**: The path to production must be fully automated. This includes all testing, quality gates, and infrastructure provisioning. Manual steps are an anti-pattern.
