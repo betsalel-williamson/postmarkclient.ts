@@ -11,7 +11,7 @@ This document serves as the central index for all documentation related to the p
 
 ### Core Engineering Principles
 
-- [**core_principles.md**](core_principles.md)
+- [**core-principles.md**](core-principles.md)
   - Centralized repository of core engineering principles for the project, covering product, delivery, architectural, code, and testing principles.
 - [**kentbeck.md**](kentbeck.md)
   - By Kent Beck. Detailed guidance on Kent Beck's Test-Driven Development (TDD) and "Tidy First" methodologies, including Red-Green-Refactor cycles and structural vs. behavioral changes. [source](https://tidyfirst.substack.com/p/augmented-coding-beyond-the-vibes?open=false#§appendix-system-prompt)
@@ -20,13 +20,13 @@ This document serves as the central index for all documentation related to the p
 
 ### Development Process & Operational Protocols
 
-- [**PROCESS.md**](PROCESS.md)
+- [**process.md**](process.md)
   - Outlines the iterative, data-informed 7-step improvement cycle for software development, integrating AI as a core accelerator.
-- [**secondary_protocols.md**](secondary_protocols.md)
+- [**secondary-protocols.md**](secondary-protocols.md)
   - Additional operational mandates and communication style guidelines for the GenAI system, emphasizing directness, conciseness, and minimal diffs.
-- [**task_standards.md**](task_standards.md)
+- [**task-standards.md**](task-standards.md)
   - Standards for defining and managing tasks.
-- [**user_story_standards.md**](user_story_standards.md)
+- [**user-story-standards.md**](user-story-standards.md)
   - Standards for writing user stories.
 
 ### General Project Practices
@@ -69,7 +69,5 @@ This section contains detailed best practices and guidelines for each programmin
 
 ### Other files
 
-- [**principles.md**](principles.md)
-  - General principles for the project.
 - [**citypaul.md**](citypaul.md)
   - By Paul Hammond. [source](https://github.com/citypaul/.dotfiles/blob/main/claude/.claude/CLAUDE.md)
