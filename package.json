@@ -14,7 +14,7 @@
     "test": "vitest",
     "format": "prettier --write . && markdownlint-cli2 --fix",
     "lint:md": "markdownlint-cli2",
-    "migrate:add-customer-notes": "tsc scripts/addCustomerFacingNotesColumn.ts && node scripts/addCustomerFacingNotesColumn.js"
+    "migrate:add-customer-notes": "ts-node scripts/addCustomerFacingNotesColumn.ts"
   },
   "keywords": [],
   "author": "",
@@ -34,6 +34,7 @@
     "markdownlint-cli2": "^0.18.1",
     "msw": "^2.10.3",
     "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }
