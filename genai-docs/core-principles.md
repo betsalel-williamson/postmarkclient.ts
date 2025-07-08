@@ -39,14 +39,9 @@ Centralized repository of core engineering principles for the project.
 
 ## Code & implementation principles
 
-- **Prefer Plain Objects and ES Modules**
-  Favor plain JavaScript objects with TypeScript types over class syntax. This improves interoperability, reduces boilerplate, and enhances predictability. Use ES module boundaries (`export`/`import`) for encapsulation, not class visibility keywords. Unexported code is private.
-- **Avoid `any`; Use `unknown`**
-  The `any` type disables type safety and is forbidden. For values of an unknown type, use `unknown` and perform explicit type-narrowing checks.
-- **Embrace Array Operators**
-  Use functional array operators (`.map`, `.filter`, `.reduce`) to promote immutability and improve code readability.
-
 ## Testing & validation principles
 
+- **Comprehensive Automation**: The path to production must be fully automated. This includes all testing, quality gates, and infrastructure provisioning. Manual steps are an anti-pattern.
 - **Single Preflight Command**
   All validation—building, testing, type-checking, and linting—must be executable via a single command (for example, `npm run preflight`). This ensures consistent quality checks for all changes.
+- **Pragmatic Mocking**: Only mock dependencies when tests are expensive (for example, slow I/O, network calls, complex setup). For cheap tests (for example, simple functions, local file system interactions), prefer real implementations to ensure higher fidelity and simpler test code.
