@@ -12,8 +12,14 @@ export interface Lead {
   notes: string | null;
 }
 
+import * as fs from 'fs';
+
 export function getLeads(dbPath: string = 'business_cards.duckdb'): Promise<Lead[]> {
   return new Promise((resolve, reject) => {
+    if (!fs.existsSync(dbPath)) {
+      return reject(new Error(`Database file not found at: ${dbPath}`));
+    }
+
     const db = new duckdb.Database(dbPath);
 
     db.all('SELECT * FROM stg_cards_data', (err, res) => {
@@ -32,7 +38,7 @@ export function getLeads(dbPath: string = 'business_cards.duckdb'): Promise<Lead
           // Type guard to ensure row is an object with string properties
           if (typeof row !== 'object' || row === null) {
             // Or handle this error more gracefully
-            throw new Error('Invalid row data from database'); 
+            throw new Error('Invalid row data from database');
           }
           const leadRow = row as { [key: string]: any };
 

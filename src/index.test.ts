@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import { server } from './mocks/server';
 import { http, HttpResponse } from 'msw';
-import { run } from './index';
+import { run, main } from './index';
 import * as duckdb from 'duckdb';
 import * as fs from 'fs';
 
@@ -43,6 +43,21 @@ describe('CLI', () => {
     if (fs.existsSync(testDbPath)) {
       fs.unlinkSync(testDbPath);
     }
+  });
+
+  it('should log an error and exit if the database does not exist', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const processExitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as (code?: number) => never);
+
+    // Mock argv to simulate command line arguments
+    process.argv = ['node', 'index.js', 'send', 'from@example.com', 'campaign', 'template', '--dbPath', './non_existent_db.duckdb'];
+
+    await main();
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith("Error: Database file not found at: ./non_existent_db.duckdb");
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+
+    vi.restoreAllMocks();
   });
 
   it('should fetch leads and send emails', async () => {

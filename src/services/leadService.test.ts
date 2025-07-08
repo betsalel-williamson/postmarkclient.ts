@@ -43,6 +43,13 @@ describe('leadService', () => {
     }
   });
 
+  it('should throw an error if the database file does not exist', async () => {
+    const nonExistentDbPath = './non_existent_db.duckdb';
+    await expect(getLeads(nonExistentDbPath)).rejects.toThrow(
+      `Database file not found at: ${nonExistentDbPath}`
+    );
+  });
+
   it('should return an array of leads from a test database', async () => {
     const leads = await getLeads(testDbPath);
 

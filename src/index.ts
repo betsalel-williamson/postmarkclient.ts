@@ -49,29 +49,33 @@ export async function run(argv: { from: string, campaign: string, template: stri
 }
 
 export async function main() {
-  yargs(hideBin(process.argv))
-    .command(
-      'send <from> <campaign> <template>',
-      'Send a batch of emails using a Postmark template',
-      (yargs) => {
-        return yargs
-          .positional('from', { describe: 'The from email address', type: 'string' })
-          .positional('campaign', { describe: 'The campaign name (for UTM tracking)', type: 'string' })
-          .positional('template', { describe: 'The Postmark template alias to use', type: 'string' });
-      },
-      async (argv) => {
-        if (typeof argv.from === 'string' && typeof argv.campaign === 'string' && typeof argv.template === 'string') {
-          await run(argv as { from: string, campaign: string, template: string }, undefined);
-        } else {
-          console.error('Invalid arguments');
-          process.exit(1);
+  try {
+    await yargs(hideBin(process.argv))
+      .command(
+        'send <from> <campaign> <template>',
+        'Send a batch of emails using a Postmark template',
+        (yargs) => {
+          return yargs
+            .positional('from', { describe: 'The from email address', type: 'string' })
+            .positional('campaign', { describe: 'The campaign name (for UTM tracking)', type: 'string' })
+            .positional('template', { describe: 'The Postmark template alias to use', type: 'string' })
+            .option('dbPath', { describe: 'Path to the DuckDB database file', type: 'string' });
+        },
+        async (argv) => {
+          await run(argv as { from: string, campaign: string, template: string }, argv.dbPath as string | undefined);
         }
-      }
-    )
-    .demandCommand(1, 'You need at least one command before moving on')
-    .help()
-    .alias('help', 'h')
-    .parse();
+      )
+      .demandCommand(1, 'You need at least one command before moving on')
+      .help()
+      .alias('help', 'h')
+      .strict()
+      .parseAsync();
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(`Error: ${error.message}`);
+    }
+    process.exit(1);
+  }
 }
 
 if (require.main === module) {
