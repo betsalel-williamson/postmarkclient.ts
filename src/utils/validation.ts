@@ -21,13 +21,7 @@ export function validateAndTransformLead(rawData: unknown): Partial<Lead> {
     lead.notes = data.notes.substring(0, 5000);
   }
 
-  const combinedText = [
-    data.title,
-    data.email,
-    data.company,
-    data.products,
-    data.notes,
-  ]
+  const combinedText = [data.title, data.email, data.company, data.products, data.notes]
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
@@ -40,6 +34,9 @@ export function validateAndTransformLead(rawData: unknown): Partial<Lead> {
   const hasDog =
     combinedText.includes('dog') ||
     combinedText.includes('canine') ||
+    combinedText.includes('puppy') ||
+    combinedText.includes('woof') ||
+    combinedText.includes('bark') ||
     combinedText.includes('bulldog');
 
   if (hasCat && hasDog) {

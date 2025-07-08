@@ -10,6 +10,7 @@ export interface Lead {
   title: string | null;
   product_interest: 'cat' | 'dog' | 'cat+dog' | null | undefined;
   notes: string | null;
+  customer_facing_notes: string | null;
 }
 
 import * as fs from 'fs';
@@ -47,6 +48,7 @@ export async function getLeads(dbPath: string = 'business_cards.duckdb'): Promis
         title: (validated.title || leadRow[6]) as string | null,
         product_interest: validated.product_interest,
         notes: (validated.notes || leadRow[8]) as string | null,
+        customer_facing_notes: null, // New column, will be populated later
       };
     });
     return leads;

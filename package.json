@@ -13,7 +13,8 @@
     "prepare": "husky",
     "test": "vitest",
     "format": "prettier --write . && markdownlint-cli2 --fix",
-    "lint:md": "markdownlint-cli2"
+    "lint:md": "markdownlint-cli2",
+    "migrate:add-customer-notes": "tsc scripts/addCustomerFacingNotesColumn.ts && node scripts/addCustomerFacingNotesColumn.js"
   },
   "keywords": [],
   "author": "",

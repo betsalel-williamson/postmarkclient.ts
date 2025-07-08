@@ -14,6 +14,7 @@ describe('url', () => {
       title: 'Developer',
       product_interest: 'dog',
       notes: 'Test notes here',
+      customer_facing_notes: null,
     };
 
     const finalUrl = buildOptInUrl(baseUrl, 'b2b_campaign_1', lead);
