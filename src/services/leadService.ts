@@ -37,14 +37,14 @@ export function getLeads(dbPath: string = 'business_cards.duckdb'): Promise<Lead
           const leadRow = row as { [key: string]: any };
 
           return {
-            first_name: leadRow.first_name,
-            last_name: leadRow.last_name,
-            email: leadRow.email,
-            phone_number: leadRow.cell || leadRow.phone,
-            company: validated.company || leadRow.company,
-            title: validated.title || leadRow.title,
+            first_name: leadRow.first_name as string | null,
+            last_name: leadRow.last_name as string | null,
+            email: leadRow.email as string | null,
+            phone_number: (leadRow.cell || leadRow.phone) as string | null,
+            company: (validated.company || leadRow.company) as string | null,
+            title: (validated.title || leadRow.title) as string | null,
             product_interest: validated.product_interest,
-            notes: validated.notes || leadRow.notes,
+            notes: (validated.notes || leadRow.notes) as string | null,
           };
         });
         resolve(leads);

@@ -13,19 +13,22 @@ describe('leadService', () => {
       fs.unlinkSync(testDbPath);
     }
 
-    const db = new duckdb.Database(testDbPath, (err) => {
+    const db = new duckdb.Database(testDbPath, (err: Error | null) => {
       if (err) return reject(err);
 
       db.exec(
         "CREATE TABLE stg_cards_data (first_name VARCHAR, last_name VARCHAR, email VARCHAR, cell VARCHAR, phone VARCHAR, company VARCHAR, title VARCHAR, products VARCHAR, notes VARCHAR);",
-        (err) => {
+        (err: Error | null) => {
           if (err) return reject(err);
 
           db.exec(
             "INSERT INTO stg_cards_data VALUES ('John', 'Doe', 'john.doe@example.com', '123-456-7890', null, 'ACME Inc', 'CEO', 'cat', 'Test note')",
-            (err) => {
+            (err: Error | null) => {
               if (err) return reject(err);
-              db.close(resolve);
+              db.close((closeErr: Error | null) => {
+                if (closeErr) return reject(closeErr);
+                resolve();
+              });
             }
           );
         }
