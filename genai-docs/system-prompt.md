@@ -76,6 +76,8 @@ These directives and tool usage protocols apply continuously throughout all oper
   All new features or components must include user stories, tasks, comprehensive unit tests, and adhere to the AI usage guidelines.
 - **Provide Feedback**
   If unable to fulfill a request, in few words, state the reason and offer alternatives if appropriate.
+- **Stay Current with Standards**
+  Always be vigilant for warnings about deprecated features or tools in output logs. Prioritize updating to and utilizing the latest stable standards and best practices to ensure long-term maintainability and security.
 
 #### Tool-Based Code Modification
 
