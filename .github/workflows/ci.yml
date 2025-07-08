@@ -15,10 +15,14 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies and build
-        run: |
-          npm ci
-          npm run build
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check code formatting
+        run: npm run format -- --check
+
+      - name: Build
+        run: npm run build
 
       - name: Run tests and generate coverage reports
         # The coverage reporters configured in vitest.config.ts will generate:
@@ -27,9 +31,6 @@ jobs:
         # - coverage/html/ for the full interactive HTML report
         run: npm test -- --coverage
         continue-on-error: true # Ensure subsequent steps run even if tests fail
-
-      - name: Check code formatting
-        run: npm run format -- --check
 
       - name: Upload HTML coverage report artifact
         uses: actions/upload-artifact@v4
