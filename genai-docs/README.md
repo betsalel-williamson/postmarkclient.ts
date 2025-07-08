@@ -31,7 +31,7 @@ This document serves as the central index for all documentation related to the p
 
 ### General Project Practices
 
-- [**Project Practices**](project_practices.md)
+- [**Project Practices**](project-practices.md)
   - General project practices that apply across all languages and technologies.
 
 ### Architectural Vision
