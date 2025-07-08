@@ -23,7 +23,9 @@ export async function getLeads(dbPath: string = 'business_cards.duckdb'): Promis
   const connection = await instance.connect();
 
   try {
-    const reader = await connection.runAndReadAll('SELECT first_name, last_name, email, cell, phone, company, title, products, notes FROM stg_cards_data');
+    const reader = await connection.runAndReadAll(
+      'SELECT first_name, last_name, email, cell, phone, company, title, products, notes FROM stg_cards_data'
+    );
     const res = reader.getRows();
 
     const leads: Lead[] = res.map((row: unknown) => {
