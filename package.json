@@ -10,7 +10,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build",
-    "prepare": "husky install",
+    "prepare": "husky",
     "test": "vitest",
     "format": "prettier --write . && markdownlint-cli2 --fix",
     "lint:md": "markdownlint-cli2"
