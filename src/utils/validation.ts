@@ -21,20 +21,33 @@ export function validateAndTransformLead(rawData: unknown): Partial<Lead> {
     lead.notes = data.notes.substring(0, 5000);
   }
 
-  if (typeof data.products === 'string') {
-    const products = data.products.toLowerCase();
-    const hasCat = products.includes('cat') || products.includes('feline');
-    const hasDog = products.includes('dog') || products.includes('canine');
+  const combinedText = [
+    data.title,
+    data.email,
+    data.company,
+    data.products,
+    data.notes,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
 
-    if (hasCat && hasDog) {
-      lead.product_interest = 'cat+dog';
-    } else if (hasCat) {
-      lead.product_interest = 'cat';
-    } else if (hasDog) {
-      lead.product_interest = 'dog';
-    } else {
-      lead.product_interest = null;
-    }
+  const hasCat =
+    combinedText.includes('cat') ||
+    combinedText.includes('feline') ||
+    combinedText.includes('kitty') ||
+    combinedText.includes('purr');
+  const hasDog =
+    combinedText.includes('dog') ||
+    combinedText.includes('canine') ||
+    combinedText.includes('bulldog');
+
+  if (hasCat && hasDog) {
+    lead.product_interest = 'cat+dog';
+  } else if (hasCat) {
+    lead.product_interest = 'cat';
+  } else if (hasDog) {
+    lead.product_interest = 'dog';
   } else {
     lead.product_interest = null;
   }
