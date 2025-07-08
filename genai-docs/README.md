@@ -13,8 +13,6 @@ This document serves as the central index for all documentation related to the p
 
 - [**core-principles.md**](core-principles.md)
   - Centralized repository of core engineering principles for the project, covering product, delivery, architectural, code, and testing principles.
-- [**kentbeck.md**](kentbeck.md)
-  - By Kent Beck. Detailed guidance on Kent Beck's Test-Driven Development (TDD) and "Tidy First" methodologies, including Red-Green-Refactor cycles and structural vs. behavioral changes. [source](https://tidyfirst.substack.com/p/augmented-coding-beyond-the-vibes?open=false#§appendix-system-prompt)
 - [**VERIFICATION_PROTOCOL.md**](VERIFICATION_PROTOCOL.md)
   - Defines the verification protocol for the GenAI system.
 
@@ -69,5 +67,7 @@ This section contains detailed best practices and guidelines for each programmin
 
 ### Other files
 
+- [**kentbeck.md**](kentbeck.md)
+  - By Kent Beck. Detailed guidance on Kent Beck's Test-Driven Development (TDD) and "Tidy First" methodologies, including Red-Green-Refactor cycles and structural vs. behavioral changes. [source](https://tidyfirst.substack.com/p/augmented-coding-beyond-the-vibes?open=false#§appendix-system-prompt)
 - [**citypaul.md**](citypaul.md)
   - By Paul Hammond. [source](https://github.com/citypaul/.dotfiles/blob/main/claude/.claude/CLAUDE.md)
