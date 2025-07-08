@@ -7,8 +7,15 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov', 'text-summary'],
-      reportsDirectory: './coverage',
+      reporter: [
+        'text',
+        ['text', { file: 'text-report.md' }], // Outputs a text table to a file (for summary embedding)
+        'json',
+        'html',
+        'lcov',
+        'text-summary'
+      ],
+      reportsDirectory: 'coverage/',
     },
     reporters: ['default', 'junit'],
     outputFile: 'junit.xml',
