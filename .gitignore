@@ -1,0 +1,24 @@
+# Local development
+/node_modules/
+/packages/rust-orchestrator/target/
+/dist/
+/scripts/dist/
+*.log
+.env
+
+# User-specific
+u[0-9]*.sh
+# !update_golden_file.sh
+
+# PWA generated code
+/packages/pwa/dist/
+
+samples/
+
+# vale
+vale.json
+
+*.duckdb
+*.duckdb.bak
+
+junit.xml
