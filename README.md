@@ -1,5 +1,11 @@
 # Postmark CLI Helper
 
+> ⚠️ PROJECT ABANDONED ⚠️
+>
+> This project has been abandoned and its functionality is being migrated to a new repository: [https://github.com/betsalel-williamson/GenAIBusinessCardScanner](https://github.com/betsalel-williamson/GenAIBusinessCardScanner).
+
+---
+
 This project provides a command-line interface (CLI) application to automate sending personalized email blasts using Postmark, leveraging lead data from a DuckDB database.
 
 ## Features
