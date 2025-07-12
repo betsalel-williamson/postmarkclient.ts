@@ -34,7 +34,12 @@ export async function run(argv: {
 
   const client = new ServerClient(serverToken);
   const leadService = createLeadService(argv.source);
-  const leads = await leadService.getLeads({ dbPath: argv.dbPath, spreadsheetId: argv.spreadsheetId, range: argv.range, keyFilePath: argv.keyFilePath });
+  const leads = await leadService.getLeads({
+    dbPath: argv.dbPath,
+    spreadsheetId: argv.spreadsheetId,
+    range: argv.range,
+    keyFilePath: argv.keyFilePath,
+  });
 
   for (const lead of leads) {
     if (!lead.email) {
@@ -87,10 +92,6 @@ export async function main() {
             })
             .option('dbPath', { describe: 'Path to the DuckDB database file', type: 'string' })
             .option('spreadsheetId', { describe: 'The ID of the Google Sheet', type: 'string' })
-            .option('range', {
-              describe: 'The range of cells to fetch from the Google Sheet',
-              type: 'string',
-            })
             .option('keyFilePath', {
               describe: 'The path to the service account key file',
               type: 'string',
@@ -105,7 +106,6 @@ export async function main() {
               source: string;
               dbPath?: string;
               spreadsheetId?: string;
-              range?: string;
               keyFilePath?: string;
             }
           );

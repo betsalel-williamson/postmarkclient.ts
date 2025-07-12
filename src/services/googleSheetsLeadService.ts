@@ -1,45 +1,42 @@
 import { Lead, LeadService } from './leadService.types';
-import { google } from 'googleapis';
-import { GoogleAuth } from 'google-auth-library';
-
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
-
-async function authorize(keyFilePath: string) {
-  const auth = new GoogleAuth({
-    keyFile: keyFilePath,
-    scopes: SCOPES,
-  });
-  const client = await auth.getClient();
-  return client;
-}
+import { GoogleSheetsApi } from './googleSheetsApi';
 
 export class GoogleSheetsLeadService implements LeadService {
-  public async getLeads(options: { spreadsheetId: string; range: string; keyFilePath: string }): Promise<Lead[]> {
-    const auth = await authorize(options.keyFilePath);
-    const sheets = google.sheets({ version: 'v4', auth });
+  public async getLeads(options: {
+    spreadsheetId: string;
+    keyFilePath: string;
+  }): Promise<Lead[]> {
+    const api = new GoogleSheetsApi(options.keyFilePath);
+    const rows = await api.getValues(options.spreadsheetId, 'A1:Z');
 
-    const res = await sheets.spreadsheets.values.get({
-      spreadsheetId: options.spreadsheetId,
-      range: options.range,
-    });
-
-    const rows = res.data.values;
-    if (!rows || rows.length === 0) {
-      console.log('No data found.');
-      return [];
+    if (!rows || rows.length < 2) {
+      throw new Error('Sheet must contain a header row and at least one data row.');
     }
 
-    const leads: Lead[] = rows.map((row: any[]) => ({
-      first_name: row[0] || null,
-      last_name: row[1] || null,
-      email: row[2] || null,
-      phone_number: row[3] || null,
-      company: row[4] || null,
-      title: row[5] || null,
-      product_interest: row[6] || null,
-      notes: row[7] || null,
-      customer_facing_notes: row[8] || null,
-    }));
+    const headers = rows[0];
+    const dataRows = rows.slice(1);
+
+    // Validate headers
+    if (new Set(headers).size !== headers.length) {
+      throw new Error('Headers must be unique.');
+    }
+    if (headers[0] !== 'row_id') {
+      throw new Error("The first column must be 'row_id'.");
+    }
+
+    const leads: Lead[] = dataRows.map((row, index) => {
+      if (!row[0]) {
+        throw new Error(`Missing row_id for row ${index + 2}`);
+      }
+
+      const lead: Partial<Lead> = {};
+      headers.forEach((header, i) => {
+        if (header in { first_name: '', last_name: '', email: '', phone_number: '', company: '', title: '', product_interest: '', notes: '', customer_facing_notes: '' }) {
+          lead[header as keyof Lead] = row[i] || null;
+        }
+      });
+      return lead as Lead;
+    });
 
     return leads;
   }
