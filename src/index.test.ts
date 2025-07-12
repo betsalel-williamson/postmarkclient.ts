@@ -146,8 +146,6 @@ describe('CLI', () => {
     expect(firstCallArgs.TextBody).toBe('Test Text Body');
   });
 
-  
-
   it('should generate TextBody from HTML when not provided', async () => {
     const sendEmailMock = vi.fn();
     const mockGetValues = vi.fn().mockResolvedValueOnce([

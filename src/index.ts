@@ -148,7 +148,9 @@ export async function main() {
             if (error instanceof Error) {
               console.error(`Error reading or parsing config file: ${error.message}`);
             } else {
-              console.error(`An unknown error occurred while reading or parsing config file: ${error}`);
+              console.error(
+                `An unknown error occurred while reading or parsing config file: ${error}`
+              );
             }
             process.exit(1);
           }
