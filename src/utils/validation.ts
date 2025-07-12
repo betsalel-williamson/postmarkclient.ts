@@ -1,4 +1,4 @@
-import { Lead } from '../services/leadService';
+import { Lead } from '../services/leadService.types';
 
 export function validateAndTransformLead(rawData: unknown): Partial<Lead> {
   const lead: Partial<Lead> = {};

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildOptInUrl } from './url';
-import { Lead } from '../services/leadService';
+import { Lead } from '../services/leadService.types';
 
 describe('url', () => {
   it('should build a URL with autofill and UTM parameters', () => {

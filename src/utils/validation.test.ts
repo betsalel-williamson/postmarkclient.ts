@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { validateAndTransformLead } from './validation';
-import { Lead } from '../services/leadService';
+import { Lead } from '../services/leadService.types';
 
 describe('validation', () => {
   it('should correctly validate and transform a lead', () => {

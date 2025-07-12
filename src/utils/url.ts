@@ -1,4 +1,4 @@
-import { Lead } from '../services/leadService';
+import { Lead } from '../services/leadService.types';
 
 export function buildOptInUrl(baseUrl: string, campaign: string, lead: Lead): string {
   const url = new URL(baseUrl);
