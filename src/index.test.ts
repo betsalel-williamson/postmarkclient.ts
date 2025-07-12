@@ -50,6 +50,8 @@ describe('CLI', () => {
       'from@example.com',
       'campaign',
       'template',
+      '--source',
+      'duckdb',
       '--dbPath',
       './non_existent_db.duckdb',
     ];
@@ -75,10 +77,13 @@ describe('CLI', () => {
       })
     );
 
-    await run(
-      { from: 'test@example.com', campaign: 'test_campaign', template: 'test_template' },
-      testDbPath
-    );
+    await run({
+      from: 'test@example.com',
+      campaign: 'test_campaign',
+      template: 'test_template',
+      source: 'duckdb',
+      dbPath: testDbPath,
+    });
 
     expect(sendEmailMock).toHaveBeenCalled();
     const firstCallArgs = sendEmailMock.mock.calls[0][0];

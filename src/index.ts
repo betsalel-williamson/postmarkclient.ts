@@ -11,14 +11,17 @@ interface Arguments {
   [key: string]: unknown; // Add index signature
 }
 
-import { getLeads } from './services/leadService';
+import { createLeadService } from './services/leadService';
 import { buildOptInUrl } from './utils/url';
 import { ServerClient } from 'postmark';
 
-export async function run(
-  argv: { from: string; campaign: string; template: string },
-  dbPath?: string
-) {
+export async function run(argv: {
+  from: string;
+  campaign: string;
+  template: string;
+  source: string;
+  dbPath?: string;
+}) {
   const serverToken = process.env.POSTMARK_SERVER_TOKEN;
 
   if (!serverToken) {
@@ -27,7 +30,8 @@ export async function run(
   }
 
   const client = new ServerClient(serverToken);
-  const leads = await getLeads(dbPath);
+  const leadService = createLeadService(argv.source);
+  const leads = await leadService.getLeads({ dbPath: argv.dbPath });
 
   for (const lead of leads) {
     if (!lead.email) {
@@ -72,12 +76,23 @@ export async function main() {
               describe: 'The Postmark template alias to use',
               type: 'string',
             })
+            .option('source', {
+              describe: 'The lead data source to use',
+              type: 'string',
+              choices: ['duckdb', 'google-sheets'],
+              demandOption: true,
+            })
             .option('dbPath', { describe: 'Path to the DuckDB database file', type: 'string' });
         },
         async (argv) => {
           await run(
-            argv as { from: string; campaign: string; template: string },
-            argv.dbPath as string | undefined
+            argv as {
+              from: string;
+              campaign: string;
+              template: string;
+              source: string;
+              dbPath?: string;
+            }
           );
         }
       )
