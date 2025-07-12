@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { DuckDbLeadService } from './duckdbLeadService';
 import { DuckDBInstance } from '@duckdb/node-api';
 import * as fs from 'fs';
+import { Config } from './configService';
 
 describe('DuckDbLeadService', () => {
   const testDbPath = './test_business_cards.duckdb';
@@ -31,17 +32,26 @@ describe('DuckDbLeadService', () => {
     }
   });
 
+  it('should throw an error if dbPath is not provided in the config', () => {
+    const config: Config = { postmarkServerToken: 'test-token' };
+    expect(() => new DuckDbLeadService(config)).toThrow('DB_PATH not set in .env file');
+  });
+
   it('should throw an error if the database file does not exist', async () => {
-    const service = new DuckDbLeadService();
-    const nonExistentDbPath = './non_existent_db.duckdb';
-    await expect(service.getLeads({ dbPath: nonExistentDbPath })).rejects.toThrow(
-      `Database file not found at: ${nonExistentDbPath}`
+    const config: Config = {
+      postmarkServerToken: 'test-token',
+      dbPath: './non_existent_db.duckdb',
+    };
+    const service = new DuckDbLeadService(config);
+    await expect(service.getLeads()).rejects.toThrow(
+      `Database file not found at: ${config.dbPath}`
     );
   });
 
   it('should return an array of leads from a test database', async () => {
-    const service = new DuckDbLeadService();
-    const leads = await service.getLeads({ dbPath: testDbPath });
+    const config: Config = { postmarkServerToken: 'test-token', dbPath: testDbPath };
+    const service = new DuckDbLeadService(config);
+    const leads = await service.getLeads();
 
     expect(Array.isArray(leads)).toBe(true);
     expect(leads.length).toBeGreaterThan(0);

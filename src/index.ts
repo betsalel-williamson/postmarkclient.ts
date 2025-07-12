@@ -1,49 +1,40 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
-import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
-
-interface Arguments {
-  from: string;
-  to: string;
-  subject: string;
-  body: string;
-  [key: string]: unknown; // Add index signature
-}
-
+import yargs from 'yargs/yargs';
 import { createLeadService } from './services/leadService';
 import { buildOptInUrl } from './utils/url';
 import { ServerClient } from 'postmark';
+import { Config, getConfig } from './services/configService';
+import * as fs from 'fs/promises';
+import { piiLog } from './utils/piiLogger';
+import { convert } from 'html-to-text';
 
-export async function run(argv: {
-  from: string;
-  campaign: string;
-  template: string;
-  source: string;
-  dbPath?: string;
-  spreadsheetId?: string;
-  range?: string;
-  keyFilePath?: string;
-}) {
-  const serverToken = process.env.POSTMARK_SERVER_TOKEN;
+export async function run(
+  argv: {
+    from: string;
+    campaign: string;
+    htmlTemplatePath: string;
+    source: string;
+    forceSend?: string[];
+    subject: string;
+    textBody?: string;
+  },
+  config: Config
+) {
+  const client = new ServerClient(config.postmarkServerToken);
+  const leadService = createLeadService(argv.source, config);
+  const leads = await leadService.getLeads();
 
-  if (!serverToken) {
-    console.error('Error: POSTMARK_SERVER_TOKEN environment variable not set.');
-    throw new Error('POSTMARK_SERVER_TOKEN not set');
-  }
-
-  const client = new ServerClient(serverToken);
-  const leadService = createLeadService(argv.source);
-  const leads = await leadService.getLeads({
-    dbPath: argv.dbPath,
-    spreadsheetId: argv.spreadsheetId,
-    range: argv.range,
-    keyFilePath: argv.keyFilePath,
-  });
+  const htmlTemplate = await fs.readFile(argv.htmlTemplatePath, 'utf-8');
 
   for (const lead of leads) {
     if (!lead.email) {
       console.warn(`Skipping lead with no email: ${lead.first_name} ${lead.last_name}`);
+      continue;
+    }
+
+    const messages = await client.getOutboundMessages({ count: 1, recipient: lead.email });
+    if (Number(messages.TotalCount) > 0 && !argv.forceSend?.includes(lead.email)) {
+      console.warn(`Email already sent to ${lead.email}, skipping.`);
       continue;
     }
 
@@ -53,26 +44,30 @@ export async function run(argv: {
       lead
     );
 
-    await client.sendEmailWithTemplate({
+    let personalizedHtml = htmlTemplate.replace(/{{first_name}}/g, lead.first_name || '');
+    personalizedHtml = personalizedHtml.replace(/{{campaign}}/g, argv.campaign);
+    personalizedHtml = personalizedHtml.replace(/{{action_url}}/g, url);
+
+    await client.sendEmail({
       From: argv.from,
       To: lead.email,
-      TemplateAlias: argv.template,
-      TemplateModel: {
-        ...lead,
-        action_url: url,
-      },
+      HtmlBody: personalizedHtml,
+      Subject: argv.subject,
+      TextBody: argv.textBody || convert(personalizedHtml, { wordwrap: 130 }),
     });
 
-    console.log(`Email sent to ${lead.email}`);
+    console.log(`Email sent to recipient.`);
+    piiLog(`Email sent to ${lead.email}`);
   }
 }
 
 export async function main() {
   try {
+    const config = getConfig();
     await yargs(hideBin(process.argv))
       .command(
-        'send <from> <campaign> <template>',
-        'Send a batch of emails using a Postmark template',
+        'send <from> <campaign> <htmlTemplatePath>',
+        'Send a batch of emails using a custom HTML template',
         (yargs) => {
           return yargs
             .positional('from', { describe: 'The from email address', type: 'string' })
@@ -80,8 +75,8 @@ export async function main() {
               describe: 'The campaign name (for UTM tracking)',
               type: 'string',
             })
-            .positional('template', {
-              describe: 'The Postmark template alias to use',
+            .positional('htmlTemplatePath', {
+              describe: 'The path to the compiled HTML email template',
               type: 'string',
             })
             .option('source', {
@@ -90,25 +85,73 @@ export async function main() {
               choices: ['duckdb', 'google-sheets'],
               demandOption: true,
             })
-            .option('dbPath', { describe: 'Path to the DuckDB database file', type: 'string' })
-            .option('spreadsheetId', { describe: 'The ID of the Google Sheet', type: 'string' })
-            .option('keyFilePath', {
-              describe: 'The path to the service account key file',
+            .option('force-send', {
+              describe: 'A comma-separated list of email addresses to force send to',
               type: 'string',
+            })
+            .option('google-sheets-url', {
+              describe: 'The URL of the Google Sheet to load data from',
+              type: 'string',
+            })
+            .option('google-sheets-sheet-name', {
+              describe: 'The name of the sheet within the Google Sheet (e.g., "Sheet1", "data")',
+              type: 'string',
+            })
+            .option('subject', {
+              describe: 'The subject line for the email',
+              type: 'string',
+              demandOption: true,
+            })
+            .option('text-body', {
+              describe: 'The plain text body for the email',
+              type: 'string',
+              demandOption: true,
             });
         },
         async (argv) => {
+          const forceSend = argv.forceSend?.split(',').map((email) => email.trim());
           await run(
-            argv as {
-              from: string;
-              campaign: string;
-              template: string;
-              source: string;
-              dbPath?: string;
-              spreadsheetId?: string;
-              keyFilePath?: string;
-            }
+            {
+              from: argv.from as string,
+              campaign: argv.campaign as string,
+              htmlTemplatePath: argv.htmlTemplatePath as string,
+              source: argv.source,
+              forceSend,
+              subject: argv.subject as string,
+              textBody: argv.textBody as string,
+            },
+            config
           );
+        }
+      )
+      .command(
+        'send-from-config <configFilePath>',
+        'Send a batch of emails using a JSON configuration file',
+        (yargs) => {
+          return yargs.positional('configFilePath', {
+            describe: 'Path to the JSON configuration file',
+            type: 'string',
+          });
+        },
+        async (argv) => {
+          try {
+            const configContent = await fs.readFile(argv.configFilePath as string, 'utf-8');
+            const runConfig = JSON.parse(configContent);
+            // Handle forceSend if it's a comma-separated string in the config file
+            if (typeof runConfig.forceSend === 'string') {
+              runConfig.forceSend = runConfig.forceSend
+                .split(',')
+                .map((email: string) => email.trim());
+            }
+            await run(runConfig, config);
+          } catch (error) {
+            if (error instanceof Error) {
+              console.error(`Error reading or parsing config file: ${error.message}`);
+            } else {
+              console.error(`An unknown error occurred while reading or parsing config file: ${error}`);
+            }
+            process.exit(1);
+          }
         }
       )
       .demandCommand(1, 'You need at least one command before moving on')

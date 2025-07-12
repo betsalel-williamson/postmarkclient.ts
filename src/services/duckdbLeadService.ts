@@ -2,10 +2,20 @@ import { validateAndTransformLead } from '../utils/validation';
 import { DuckDBInstance } from '@duckdb/node-api';
 import { Lead, LeadService } from './leadService.types';
 import * as fs from 'fs';
+import { Config } from './configService';
 
 export class DuckDbLeadService implements LeadService {
-  public async getLeads(options: { dbPath: string }): Promise<Lead[]> {
-    const { dbPath = 'business_cards.duckdb' } = options;
+  private config: Config;
+
+  constructor(config: Config) {
+    if (!config.dbPath) {
+      throw new Error('DB_PATH not set in .env file');
+    }
+    this.config = config;
+  }
+
+  public async getLeads(): Promise<Lead[]> {
+    const dbPath = this.config.dbPath as string;
     if (!fs.existsSync(dbPath)) {
       throw new Error(`Database file not found at: ${dbPath}`);
     }

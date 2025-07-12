@@ -1,0 +1,11 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text>Hello {{ first_name }},</mj-text>
+        <mj-text>This is a test email for {{ campaign }}.</mj-text>
+        <mj-button href="{{action_url}}">Click here</mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

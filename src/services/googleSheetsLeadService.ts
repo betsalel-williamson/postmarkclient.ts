@@ -1,13 +1,55 @@
 import { Lead, LeadService } from './leadService.types';
 import { GoogleSheetsApi } from './googleSheetsApi';
+import { Config } from './configService';
+
+const HEADER_MAPPING: { [key: string]: keyof Lead } = {
+  company: 'company',
+  title: 'title',
+  first_name: 'first_name',
+  last_name: 'last_name',
+  email: 'email',
+  cell_phone: 'phone_number',
+  product_interest: 'product_interest',
+  customer_notes: 'notes',
+};
 
 export class GoogleSheetsLeadService implements LeadService {
-  public async getLeads(options: {
-    spreadsheetId: string;
-    keyFilePath: string;
-  }): Promise<Lead[]> {
-    const api = new GoogleSheetsApi(options.keyFilePath);
-    const rows = await api.getValues(options.spreadsheetId, 'A1:Z');
+  private config: Config;
+
+  constructor(config: Config) {
+    if (!config.googleSheetsKeyFilePath) {
+      throw new Error('GOOGLE_GCP_CREDENTIALS_PATH not set in .env file');
+    }
+
+    if (
+      !config.googleSheetsSpreadsheetId &&
+      (!config.googleSheetsUrl || !config.googleSheetsSheetName)
+    ) {
+      throw new Error(
+        'Either GOOGLE_SHEETS_SPREADSHEET_ID or both GOOGLE_SHEETS_URL and GOOGLE_SHEETS_SHEET_NAME must be set in .env file'
+      );
+    }
+    this.config = config;
+  }
+
+  public async getLeads(): Promise<Lead[]> {
+    const api = new GoogleSheetsApi(this.config.googleSheetsKeyFilePath as string);
+
+    let spreadsheetId = this.config.googleSheetsSpreadsheetId;
+    let range = 'A1:Z';
+
+    if (this.config.googleSheetsUrl && this.config.googleSheetsSheetName) {
+      const match = this.config.googleSheetsUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (!match || !match[1]) {
+        throw new Error('Invalid Google Sheets URL provided.');
+      }
+      spreadsheetId = match[1];
+      range = `${this.config.googleSheetsSheetName}!A1:Z`;
+    } else if (!spreadsheetId) {
+      throw new Error('GOOGLE_SHEETS_SPREADSHEET_ID is not set in .env file');
+    }
+
+    const rows = await api.getValues(spreadsheetId as string, range);
 
     if (!rows || rows.length < 2) {
       throw new Error('Sheet must contain a header row and at least one data row.');
@@ -20,19 +62,20 @@ export class GoogleSheetsLeadService implements LeadService {
     if (new Set(headers).size !== headers.length) {
       throw new Error('Headers must be unique.');
     }
-    if (headers[0] !== 'row_id') {
-      throw new Error("The first column must be 'row_id'.");
+    if (headers[0] !== '#') {
+      throw new Error("The first column must be '#'.");
     }
 
     const leads: Lead[] = dataRows.map((row, index) => {
       if (!row[0]) {
-        throw new Error(`Missing row_id for row ${index + 2}`);
+        throw new Error(`Missing ID for row ${index + 2}`);
       }
 
       const lead: Partial<Lead> = {};
       headers.forEach((header, i) => {
-        if (header in { first_name: '', last_name: '', email: '', phone_number: '', company: '', title: '', product_interest: '', notes: '', customer_facing_notes: '' }) {
-          lead[header as keyof Lead] = row[i] || null;
+        const mappedHeader = HEADER_MAPPING[header];
+        if (mappedHeader) {
+          lead[mappedHeader] = row[i] || null;
         }
       });
       return lead as Lead;

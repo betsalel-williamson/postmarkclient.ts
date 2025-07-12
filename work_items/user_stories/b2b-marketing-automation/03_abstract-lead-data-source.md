@@ -2,6 +2,8 @@
 story_id: 'b2b-marketing-automation/03_abstract-lead-data-source'
 title: 'Abstract lead data source to support multiple implementations'
 description: 'As a developer, I want to refactor the data access layer to use a factory pattern, so that I can easily switch between different data sources like DuckDB and Google Sheets.'
+status: 'done'
+date_verified_completed: '2025-07-12T00:00:00Z'
 acceptance_criteria:
   - A `LeadService` interface is defined.
   - A factory function is implemented to create `LeadService` instances.

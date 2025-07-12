@@ -13,7 +13,10 @@ export class GoogleSheetsApi {
     });
   }
 
-  public async getValues(spreadsheetId: string, range: string): Promise<any[][] | null | undefined> {
+  public async getValues(
+    spreadsheetId: string,
+    range: string
+  ): Promise<any[][] | null | undefined> {
     const sheets = google.sheets({ version: 'v4', auth: this.auth });
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId,

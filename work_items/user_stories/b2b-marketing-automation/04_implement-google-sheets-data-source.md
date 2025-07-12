@@ -2,6 +2,8 @@
 story_id: 'b2b-marketing-automation/04_implement-google-sheets-data-source'
 title: 'Implement Google Sheets as a lead data source'
 description: 'As a developer, I want to implement a `LeadService` for Google Sheets so that I can fetch lead data from a spreadsheet.'
+status: 'done'
+date_verified_completed: '2025-07-12T00:00:00Z'
 acceptance_criteria:
   - A `googleSheetsLeadService.ts` is created and implements the `LeadService` interface.
   - The service can authenticate with the Google Sheets API.

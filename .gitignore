@@ -4,6 +4,7 @@
 /dist/
 /scripts/dist/
 *.log
+pii.log
 .env
 
 # User-specific
@@ -25,3 +26,5 @@ vale.json
 
 junit.xml
 job-logs.txt
+
+paths.txt

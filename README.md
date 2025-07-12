@@ -41,12 +41,21 @@ This project provides a command-line interface (CLI) application to automate sen
 
    _Note: This file is `.gitignore`d to prevent accidental commits of your secret token._
 
-4. **Ensure your DuckDB database is present:**
+4. **Configure Google Sheets API Credentials (if using Google Sheets as a data source):**
+   If you are using Google Sheets as a lead data source, you will need to provide a service account key file. Set the path to this file in your `.env`:
+
+   ```dotenv
+   GOOGLE_GCP_CREDENTIALS_PATH=/path/to/your/google-sheets-key.json
+   ```
+
+   _Note: Ensure this key file is stored securely and is not committed to version control._
+
+5. **Ensure your DuckDB database is present:**
    Place your `business_cards.duckdb` file in the root of the project. The application will read lead data from the `stg_cards_data` table within this database.
 
 ## Usage
 
-To send email blasts, use the `send` command with the required arguments:
+To send email blasts using command-line arguments, use the `send` command with the required arguments:
 
 ```bash
 npm start -- send <from_email> <campaign_name> <postmark_template_alias>
@@ -61,6 +70,28 @@ npm start -- send <from_email> <campaign_name> <postmark_template_alias>
 ```bash
 npm start -- send "info@example.com" "q3-lead-nurturing" "my-custom-template"
 ```
+
+To send email blasts using a JSON configuration file, use the `send-from-config` command:
+
+```bash
+npm start -- send-from-config <path_to_config_file.json>
+```
+
+**Example JSON Configuration File (`config.json`):**
+
+```json
+{
+  "from": "info@example.com",
+  "campaign": "q3-lead-nurturing",
+  "htmlTemplatePath": "./dist/templates/b2b-template.html",
+  "source": "duckdb",
+  "forceSend": [],
+  "subject": "Your personalized subject line",
+  "textBody": "Your plain text email body." // Optional: Generated from HTML if not provided
+}
+```
+
+- `<path_to_config_file.json>`: The path to your JSON configuration file. This file should contain all the necessary parameters for sending emails.
 
 ## Development
 

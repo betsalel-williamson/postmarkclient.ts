@@ -1,56 +1,172 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GoogleSheetsLeadService } from './googleSheetsLeadService';
 import { GoogleSheetsApi } from './googleSheetsApi';
+import { Config } from './configService';
 
-vi.mock('./googleSheetsApi');
+const mockGetValues = vi.fn();
+
+vi.mock('./googleSheetsApi', () => {
+  return {
+    GoogleSheetsApi: vi.fn().mockImplementation(() => {
+      return {
+        getValues: mockGetValues,
+      };
+    }),
+  };
+});
 
 describe('GoogleSheetsLeadService', () => {
+  it('should throw an error if googleSheetsKeyFilePath is not provided', () => {
+    const config: Config = {
+      postmarkServerToken: 'test-token',
+      googleSheetsSpreadsheetId: 'test-id',
+    };
+    expect(() => new GoogleSheetsLeadService(config)).toThrow(
+      'GOOGLE_GCP_CREDENTIALS_PATH not set in .env file'
+    );
+  });
+
+  it('should throw an error if neither spreadsheet ID nor URL/sheet name are provided', () => {
+    const config: Config = {
+      postmarkServerToken: 'test-token',
+      googleSheetsKeyFilePath: 'test-path',
+    };
+    expect(() => new GoogleSheetsLeadService(config)).toThrow(
+      'Either GOOGLE_SHEETS_SPREADSHEET_ID or both GOOGLE_SHEETS_URL and GOOGLE_SHEETS_SHEET_NAME must be set in .env file'
+    );
+  });
+
   it('should throw an error if there are duplicate headers', async () => {
-    const mockGetValues = vi.fn().mockResolvedValueOnce([
-      ['row_id', 'email', 'email'],
+    mockGetValues.mockResolvedValueOnce([
+      ['#', 'email', 'email'],
       ['1', 'test1@example.com', 'test2@example.com'],
     ]);
-    GoogleSheetsApi.prototype.getValues = mockGetValues;
-    const service = new GoogleSheetsLeadService();
-    await expect(service.getLeads({ spreadsheetId: 'test-id', keyFilePath: 'test-path' })).rejects.toThrow(
-      'Headers must be unique.'
-    );
+    const config: Config = {
+      postmarkServerToken: 'test-token',
+      googleSheetsKeyFilePath: 'test-path',
+      googleSheetsSpreadsheetId: 'test-id',
+    };
+    const service = new GoogleSheetsLeadService(config);
+    await expect(service.getLeads()).rejects.toThrow('Headers must be unique.');
   });
 
-  it("should throw an error if the first header is not 'row_id'", async () => {
-    const mockGetValues = vi.fn().mockResolvedValueOnce([
-      ['email', 'row_id'],
+  it("should throw an error if the first header is not '#'", async () => {
+    mockGetValues.mockResolvedValueOnce([
+      ['email', '#'],
       ['test1@example.com', '1'],
     ]);
-    GoogleSheetsApi.prototype.getValues = mockGetValues;
-    const service = new GoogleSheetsLeadService();
-    await expect(service.getLeads({ spreadsheetId: 'test-id', keyFilePath: 'test-path' })).rejects.toThrow(
-      "The first column must be 'row_id'."
-    );
+    const config: Config = {
+      postmarkServerToken: 'test-token',
+      googleSheetsKeyFilePath: 'test-path',
+      googleSheetsSpreadsheetId: 'test-id',
+    };
+    const service = new GoogleSheetsLeadService(config);
+    await expect(service.getLeads()).rejects.toThrow("The first column must be '#'.");
   });
 
-  it('should throw an error if a row is missing a row_id', async () => {
-    const mockGetValues = vi.fn().mockResolvedValueOnce([
-      ['row_id', 'email'],
+  it('should throw an error if a row is missing an ID', async () => {
+    mockGetValues.mockResolvedValueOnce([
+      ['#', 'email'],
       ['1', 'test1@example.com'],
       [null, 'test2@example.com'],
     ]);
-    GoogleSheetsApi.prototype.getValues = mockGetValues;
-    const service = new GoogleSheetsLeadService();
-    await expect(service.getLeads({ spreadsheetId: 'test-id', keyFilePath: 'test-path' })).rejects.toThrow(
-      'Missing row_id for row 3'
-    );
+    const config: Config = {
+      postmarkServerToken: 'test-token',
+      googleSheetsKeyFilePath: 'test-path',
+      googleSheetsSpreadsheetId: 'test-id',
+    };
+    const service = new GoogleSheetsLeadService(config);
+    await expect(service.getLeads()).rejects.toThrow('Missing ID for row 3');
   });
 
-  it('should correctly parse lead data', async () => {
-    const mockGetValues = vi.fn().mockResolvedValueOnce([
-      ['row_id', 'first_name', 'last_name', 'email'],
-      ['1', 'John', 'Doe', 'john.doe@example.com'],
+  it('should correctly parse lead data with the new header mapping using spreadsheet ID', async () => {
+    mockGetValues.mockResolvedValueOnce([
+      [
+        '#',
+        'company',
+        'title',
+        'first_name',
+        'last_name',
+        'email',
+        'cell_phone',
+        'product_interest',
+        'customer_notes',
+      ],
+      [
+        '1',
+        'My Pet Store',
+        'My Title',
+        'FirstName',
+        'LastName',
+        'example@gmail.com',
+        null,
+        'cat+dog',
+        'test note',
+      ],
     ]);
-    GoogleSheetsApi.prototype.getValues = mockGetValues;
-    const service = new GoogleSheetsLeadService();
-    const leads = await service.getLeads({ spreadsheetId: 'test-id', keyFilePath: 'test-path' });
+    const config: Config = {
+      postmarkServerToken: 'test-token',
+      googleSheetsKeyFilePath: 'test-path',
+      googleSheetsSpreadsheetId: 'test-id',
+    };
+    const service = new GoogleSheetsLeadService(config);
+    const leads = await service.getLeads();
     expect(leads).toHaveLength(1);
-    expect(leads[0].first_name).toBe('John');
+    expect(leads[0].company).toBe('My Pet Store');
+    expect(leads[0].first_name).toBe('FirstName');
+    expect(leads[0].notes).toBe('test note');
+    expect(mockGetValues).toHaveBeenCalledWith('test-id', 'A1:Z');
+  });
+
+  it('should correctly parse lead data with the new header mapping using URL and sheet name', async () => {
+    mockGetValues.mockResolvedValueOnce([
+      [
+        '#',
+        'company',
+        'title',
+        'first_name',
+        'last_name',
+        'email',
+        'cell_phone',
+        'product_interest',
+        'customer_notes',
+      ],
+      [
+        '1',
+        'Another Pet Store',
+        'Another Title',
+        'Jane',
+        'Doe',
+        'jane.doe@example.com',
+        null,
+        'dog',
+        'another note',
+      ],
+    ]);
+    const config: Config = {
+      postmarkServerToken: 'test-token',
+      googleSheetsKeyFilePath: 'test-path',
+      googleSheetsUrl: 'https://docs.google.com/spreadsheets/d/spreadsheet_id_from_url/edit',
+      googleSheetsSheetName: 'data',
+    };
+    const service = new GoogleSheetsLeadService(config);
+    const leads = await service.getLeads();
+    expect(leads).toHaveLength(1);
+    expect(leads[0].company).toBe('Another Pet Store');
+    expect(leads[0].first_name).toBe('Jane');
+    expect(leads[0].notes).toBe('another note');
+    expect(mockGetValues).toHaveBeenCalledWith('spreadsheet_id_from_url', 'data!A1:Z');
+  });
+
+  it('should throw an error for an invalid Google Sheets URL', async () => {
+    mockGetValues.mockResolvedValueOnce([]);
+    const config: Config = {
+      postmarkServerToken: 'test-token',
+      googleSheetsKeyFilePath: 'test-path',
+      googleSheetsUrl: 'invalid-url',
+      googleSheetsSheetName: 'data',
+    };
+    const service = new GoogleSheetsLeadService(config);
+    await expect(service.getLeads()).rejects.toThrow('Invalid Google Sheets URL provided.');
   });
 });
