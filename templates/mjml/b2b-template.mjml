@@ -98,9 +98,9 @@
         <mj-column>
           <mj-image
             src="https://cdn.shopify.com/shopify-email/hb7qfyzqjmhwjp6xi0wsy8cp52rt.png?width=480&height=250"
-            alt="Home Life Pet"
+            alt="{{ product_name }}"
             css-class="email-masthead_logo"
-            href="https://homelifepet.com"
+            href="{{ product_url }}"
           ></mj-image>
         </mj-column>
       </mj-section>
@@ -115,7 +115,7 @@
             </p>
             <p>
               To receive news about our wholesale products, special B2B offers, and other partner
-              information from HomeLife Pet, please take a moment to confirm your subscription
+              information from {{ company_name }}, please take a moment to confirm your subscription
               below.
             </p>
           </mj-text>
@@ -128,7 +128,7 @@
               marketing list. We respect your time and promise to only send relevant information.
               You can unsubscribe at any time.
             </p>
-            <p>Thank you for your partnership, <br />The HomeLife Pet Team</p>
+            <p>Thank you for your partnership, <br />The {{ company_name }} Team</p>
           </mj-text>
         </mj-column>
       </mj-section>
@@ -148,13 +148,13 @@
       <mj-section css-class="email-footer">
         <mj-column>
           <mj-text align="center">
-            <a href="https://www.facebook.com/HomeLifePetProducts/" class="social-icon"
+            <a href="{{ facebook_url }}" class="social-icon"
               ><img
                 src="https://cdn.shopify.com/shopify-email/nrqu6w5pn43waa7da6r8ifkgkl9v.svg?width=40&height=40&format=png"
                 alt="Facebook"
                 width="20"
             /></a>
-            <a href="https://www.instagram.com/homelifepetproducts/" class="social-icon"
+            <a href="{{ instagram_url }}" class="social-icon"
               ><img
                 src="https://cdn.shopify.com/shopify-email/mezbe8bg2srefo0ca2vqbbv13mjg.svg?width=40&height=40&format=png"
                 alt="Instagram"
@@ -162,12 +162,11 @@
             /></a>
           </mj-text>
           <mj-text font-size="12px" color="#74787e">
-            HomeLife Pet Products <br />8 E Main Street, Moorestown NJ 08057, United States
+            {{ company_name }} <br />{{ company_address }}
           </mj-text>
           <mj-text font-size="12px" color="#74787e">
-            You are receiving this email because you are a business contact of HomeLife Pet Products
-            or Atlas International CSB, LLC. This is a one-time request to confirm your marketing
-            preferences.
+            You are receiving this email because you are a business contact of {{ legal_entity }}.
+            This is a one-time request to confirm your marketing preferences.
           </mj-text>
         </mj-column>
       </mj-section>
