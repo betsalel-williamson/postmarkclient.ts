@@ -15,7 +15,8 @@
     "test": "vitest run",
     "format": "prettier --write . && markdownlint-cli2 --fix",
     "lint:md": "markdownlint-cli2",
-    "migrate:add-customer-notes": "ts-node scripts/addCustomerFacingNotesColumn.ts"
+    "migrate:add-customer-notes": "ts-node scripts/addCustomerFacingNotesColumn.ts",
+    "smoke:test": "ENABLE_PII_LOGGING=true bash ./examples/send-command-example.sh"
   },
   "keywords": [],
   "author": "",
