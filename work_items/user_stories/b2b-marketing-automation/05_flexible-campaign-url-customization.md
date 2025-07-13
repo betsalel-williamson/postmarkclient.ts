@@ -4,9 +4,9 @@ project_name: postmark
 epic_name: b2b-marketing-automation
 story_id: 05_b2b-marketing-automation_flexible-campaign-url-customization
 labels: 
-status: todo
+status: done
 date_created: 2025-07-13T00:00:00-07:00
-date_verified_completed: 
+date_verified_completed: 2025-07-13T00:00:00-07:00
 touched: *
 ---
 

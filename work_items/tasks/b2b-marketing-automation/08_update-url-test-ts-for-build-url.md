@@ -4,9 +4,9 @@ project_name: postmark
 epic_name: b2b-marketing-automation
 task_id: 08_update-url-test-ts-for-build-url
 labels: testing, url-generation
-status: todo
+status: done
 date_created: 2025-07-13T00:00:00-07:00
-date_verified_completed: 
+date_verified_completed: 2025-07-13T00:00:00-07:00
 touched: *
 ---
 
@@ -16,10 +16,10 @@ Modify `src/utils/url.test.ts` to update existing tests and add new tests that c
 
 ## Acceptance Criteria
 
-- [ ] Existing tests in `src/utils/url.test.ts` are updated to use the new `buildUrl` function signature and `urlConfig`.
-- [ ] New test cases are added to verify URL generation with different `staticParams` configurations.
-- [ ] New test cases are added to verify URL generation with different `dbParamMapping` configurations, including cases where lead fields are missing.
-- [ ] All tests pass successfully after the changes.
+- [x] Existing tests in `src/utils/url.test.ts` are updated to use the new `buildUrl` function signature and `urlConfig`.
+- [x] New test cases are added to verify URL generation with different `staticParams` configurations.
+- [x] New test cases are added to verify URL generation with different `dbParamMapping` configurations, including cases where lead fields are missing.
+- [x] All tests pass successfully after the changes.
 
 ## Context/Links
 

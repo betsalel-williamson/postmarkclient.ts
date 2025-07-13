@@ -4,9 +4,9 @@ project_name: postmark
 epic_name: b2b-marketing-automation
 task_id: 05_create-config-json-example
 labels: configuration
-status: todo
+status: done
 date_created: 2025-07-13T00:00:00-07:00
-date_verified_completed: 
+date_verified_completed: 2025-07-13T00:00:00-07:00
 touched: *
 ---
 
@@ -16,10 +16,10 @@ Create a new file `config.json.example` at the project root to serve as a templa
 
 ## Acceptance Criteria
 
-- [ ] A file named `config.json.example` exists at the project root.
-- [ ] The `config.json.example` file contains a `urlConfig` object with `baseUrl`, `staticParams`, and `dbParamMapping` properties.
-- [ ] The `staticParams` object includes example UTM parameters.
-- [ ] The `dbParamMapping` array includes example mappings for lead/database fields to URL parameters.
+- [x] A file named `config.json.example` exists at the project root.
+- [x] The `config.json.example` file contains a `urlConfig` object with `baseUrl`, `staticParams`, and `dbParamMapping` properties.
+- [x] The `staticParams` object includes example UTM parameters.
+- [x] The `dbParamMapping` array includes example mappings for lead/database fields to URL parameters.
 
 ## Context/Links
 

@@ -4,7 +4,7 @@ project_name: 'postmark-cli'
 epic_name: 'dagster_migration'
 task_id: '02'
 labels: 'backend, dbt, dagster, data-integrity'
-status: 'todo'
+status: 'blocked'
 date_created: '2025-07-09T10:10:00+0000'
 date_verified_completed: ''
 touched: '*'
@@ -23,4 +23,4 @@ Implement a mechanism to ensure that a one-time marketing email is sent to each 
 
 ## Context/Links
 
-- Related user story: [../user_stories/dagster_migration/00_migrate-to-dagster.md](./../user_stories/dagster_migration/00_migrate-to-dagster.md)
+- Related user story: [../user_stories/dagster_migration/00_migrate-to-dagster.md](./../user_items/dagster_migration/00_migrate-to-dagster.md)

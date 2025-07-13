@@ -4,9 +4,9 @@ project_name: postmark
 epic_name: b2b-marketing-automation
 task_id: 06_refactor-build-opt-in-url-to-build-url
 labels: refactoring, url-generation
-status: todo
+status: done
 date_created: 2025-07-13T00:00:00-07:00
-date_verified_completed: 
+date_verified_completed: 2025-07-13T00:00:00-07:00
 touched: *
 ---
 
@@ -16,11 +16,11 @@ Rename and modify the `buildOptInUrl` function in `src/utils/url.ts` to `buildUr
 
 ## Acceptance Criteria
 
-- [ ] The `buildOptInUrl` function in `src/utils/url.ts` is renamed to `buildUrl`.
-- [ ] The `buildUrl` function accepts a `urlConfig` object (containing `baseUrl`, `staticParams`, and `dbParamMapping`) and a `Lead` object as parameters.
-- [ ] The `buildUrl` function correctly constructs the URL by applying `staticParams` from `urlConfig`.
-- [ ] The `buildUrl` function correctly constructs the URL by mapping `dbParamMapping` from `urlConfig` to `Lead` object properties.
-- [ ] All hardcoded URL parameters within the function are replaced by values from `urlConfig`.
+- [x] The `buildOptInUrl` function in `src/utils/url.ts` is renamed to `buildUrl`.
+- [x] The `buildUrl` function accepts a `urlConfig` object (containing `baseUrl`, `staticParams`, and `dbParamMapping`) and a `Lead` object as parameters.
+- [x] The `buildUrl` function correctly constructs the URL by applying `staticParams` from `urlConfig`.
+- [x] The `buildUrl` function correctly constructs the URL by mapping `dbParamMapping` from `urlConfig` to `Lead` object properties.
+- [x] All hardcoded URL parameters within the function are replaced by values from `urlConfig`.
 
 ## Context/Links
 

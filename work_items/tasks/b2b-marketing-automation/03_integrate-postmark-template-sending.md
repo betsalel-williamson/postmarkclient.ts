@@ -1,24 +1,24 @@
 ---
-title: 'Integrate Postmark Template Sending'
+title: 'Integrate Postmark Email Sending'
 project_name: 'postmark-cli'
 epic_name: 'b2b-marketing-automation'
 task_id: '03'
 labels: 'backend, email, postmark'
 status: 'done'
 date_created: '2025-07-08T15:12:33+0000'
-date_verified_completed: '2025-07-12T00:00:00Z'
+date_verified_completed: '2025-07-13T00:00:00-07:00'
 touched: '*'
 ---
 
 ## Task
 
-Integrate the Postmark `sendEmailWithTemplate` method into the main application flow.
+Integrate the Postmark email sending functionality into the main application flow.
 
 ## Acceptance Criteria
 
-- [ ] The CLI uses `sendEmailWithTemplate` instead of `sendEmail`.
-- [ ] The `TemplateModel` is correctly populated with a lead's data.
-- [ ] The `action_url` in the `TemplateModel` is the personalized URL from the URL generation logic.
+- [x] The CLI uses the Postmark `sendEmail` method.
+- [x] The `HtmlBody` is correctly personalized with a lead's data.
+- [x] The `action_url` in the `HtmlBody` is the personalized URL from the URL generation logic.
 
 ## Context/Links
 
