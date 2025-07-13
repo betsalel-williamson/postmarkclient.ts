@@ -1,10 +1,28 @@
 import { describe, it, expect } from 'vitest';
-import { buildOptInUrl } from './url';
+import { buildUrl, UrlConfig } from './url';
 import { Lead } from '../services/leadService.types';
 
 describe('url', () => {
-  it('should build a URL with autofill and UTM parameters', () => {
-    const baseUrl = 'https://example.com/page?utm_source=postmark&utm_medium=email';
+  it('should build a URL with autofill and UTM parameters based on config', () => {
+    const config: UrlConfig = {
+      baseUrl: 'https://example.com/pages/b2b-marketing-opt-in',
+      staticParams: {
+        utm_source: 'postmark',
+        utm_medium: 'email',
+        utm_campaign: 'b2b_campaign_1',
+      },
+      dbParamMapping: {
+        first_name: 'first_name',
+        last_name: 'last_name',
+        email: 'email',
+        phone_number: 'phone_number',
+        'custom#company': 'company',
+        'custom#title': 'title',
+        'custom#what_type_of_products_are_you_interested_in': 'product_interest',
+        'custom#notes': 'notes',
+      },
+    };
+
     const lead: Lead = {
       first_name: 'Jane',
       last_name: 'Doe',
@@ -17,7 +35,7 @@ describe('url', () => {
       customer_facing_notes: null,
     };
 
-    const finalUrl = buildOptInUrl(baseUrl, 'b2b_campaign_1', lead);
+    const finalUrl = buildUrl(config, lead);
 
     const url = new URL(finalUrl);
 

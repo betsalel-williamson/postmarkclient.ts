@@ -1,7 +1,7 @@
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 import { createLeadService } from './services/leadService';
-import { buildOptInUrl } from './utils/url';
+import { buildUrl, UrlConfig } from './utils/url';
 import { ServerClient } from 'postmark';
 import { Config, getConfig } from './services/configService';
 import * as fs from 'fs/promises';
@@ -11,13 +11,13 @@ import { convert } from 'html-to-text';
 export async function run(
   argv: {
     from: string;
-    campaign: string;
     htmlTemplatePath: string;
     source: string;
     forceSend?: string[];
     subject: string;
     textBody?: string;
     templateData: Record<string, string | number | boolean | null | undefined>;
+    urlConfig: UrlConfig;
   },
   config: Config
 ) {
@@ -39,23 +39,22 @@ export async function run(
       continue;
     }
 
-    const url = buildOptInUrl(
-      'https://homelifepet.com/pages/b2b-marketing-opt-in',
-      argv.campaign,
-      lead
-    );
+    const url = buildUrl(argv.urlConfig, lead);
+
+    // Prepare templateData with dynamic values, allowing argv.templateData to override
+    const currentTemplateData: Record<string, string | number | boolean | null | undefined> = {
+      ...argv.templateData, // User-provided templateData first
+      first_name: lead.first_name || '',
+      campaign: argv.urlConfig.staticParams.utm_campaign || '',
+      action_url: url || '',
+    };
 
     let personalizedHtml = htmlTemplate;
 
-    // Replace lead-specific placeholders
-    personalizedHtml = personalizedHtml.replace(/{{first_name}}/g, lead.first_name || '');
-    personalizedHtml = personalizedHtml.replace(/{{campaign}}/g, argv.campaign || '');
-    personalizedHtml = personalizedHtml.replace(/{{action_url}}/g, url || '');
-
     // Dynamically replace placeholders from templateData
-    for (const key in argv.templateData) {
-      if (Object.prototype.hasOwnProperty.call(argv.templateData, key)) {
-        const value = argv.templateData[key];
+    for (const key in currentTemplateData) {
+      if (Object.prototype.hasOwnProperty.call(currentTemplateData, key)) {
+        const value = currentTemplateData[key];
         personalizedHtml = personalizedHtml.replace(
           new RegExp(`{{${key}}}`, 'g'),
           String(value || '')
@@ -81,15 +80,11 @@ export async function main() {
     const config = getConfig();
     await yargs(hideBin(process.argv))
       .command(
-        'send <from> <campaign> <htmlTemplatePath>',
+        'send <from> <htmlTemplatePath>',
         'Send a batch of emails using a custom HTML template',
         (yargs) => {
           return yargs
             .positional('from', { describe: 'The from email address', type: 'string' })
-            .positional('campaign', {
-              describe: 'The campaign name (for UTM tracking)',
-              type: 'string',
-            })
             .positional('htmlTemplatePath', {
               describe: 'The path to the compiled HTML email template',
               type: 'string',
@@ -126,6 +121,11 @@ export async function main() {
               describe: 'JSON string of key-value pairs for template personalization',
               type: 'string',
               default: '{}',
+            })
+            .option('url-config', {
+              describe: 'JSON string of URL configuration for dynamic URL generation',
+              type: 'string',
+              demandOption: true,
             });
         },
         async (argv) => {
@@ -133,13 +133,13 @@ export async function main() {
           await run(
             {
               from: argv.from as string,
-              campaign: argv.campaign as string,
               htmlTemplatePath: argv.htmlTemplatePath as string,
               source: argv.source,
               forceSend,
               subject: argv.subject as string,
               textBody: argv.textBody as string,
               templateData: JSON.parse(argv.templateData as string),
+              urlConfig: JSON.parse(argv.urlConfig as string),
             },
             config
           );
@@ -168,10 +168,6 @@ export async function main() {
           } catch (error) {
             if (error instanceof Error) {
               console.error(`Error reading or parsing config file: ${error.message}`);
-            } else {
-              console.error(
-                `An unknown error occurred while reading or parsing config file: ${error}`
-              );
             }
             process.exit(1);
           }
