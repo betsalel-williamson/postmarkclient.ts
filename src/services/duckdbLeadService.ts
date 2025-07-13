@@ -4,10 +4,12 @@ import { Lead, LeadService } from './leadService.types';
 import * as fs from 'fs';
 import { Config } from './configService';
 
-export class DuckDbLeadService implements LeadService {
+export class DuckDbLeadService extends LeadService {
   private config: Config;
 
   constructor(config: Config) {
+    super(config);
+
     if (!config.dbPath) {
       throw new Error('DB_PATH not set in .env file');
     }
@@ -27,18 +29,15 @@ export class DuckDbLeadService implements LeadService {
       const reader = await connection.runAndReadAll(
         "SELECT column_name FROM information_schema.columns WHERE table_name = 'stg_cards_data' ORDER BY ordinal_position;"
       );
-      // Assuming reader.getRows() returns an array of objects, where each object has a 'column_name' property.
-      // If it returns an array of arrays, then row[0] would be appropriate.
-      // Given the error 'undefined', it's likely 'column_name' property is missing or row is an array.
-      // Let's try accessing it as an array element first.
       const columns = reader.getRows().map((row: any) => row[0]);
-      return new Set(columns);
+      const superHeaders = await super.getReservedTemplateKeys();
+      return new Set([...columns, ...superHeaders]);
     } finally {
       await connection.disconnectSync();
     }
   }
 
-  public async getLeads(): Promise<Lead[]> {
+  public async getLeads() {
     const dbPath = this.config.dbPath as string;
     if (!fs.existsSync(dbPath)) {
       throw new Error(`Database file not found at: ${dbPath}`);
@@ -48,30 +47,43 @@ export class DuckDbLeadService implements LeadService {
     const connection = await instance.connect();
 
     try {
-      const reader = await connection.runAndReadAll(
-        'SELECT first_name, last_name, email, cell, phone, company, title, products, notes FROM stg_cards_data'
+      // Get column names first
+      const columnReader = await connection.runAndReadAll(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'stg_cards_data' ORDER BY ordinal_position;"
       );
-      const res = reader.getRows();
+      const columnNames: string[] = columnReader.getRows().map((row: any) => row[0]);
 
-      const leads: Lead[] = res.map((row: unknown) => {
-        const validated = validateAndTransformLead(row);
+      // Select all data
+      const dataReader = await connection.runAndReadAll('SELECT * FROM stg_cards_data');
+      const rawRows = dataReader.getRows();
 
-        if (typeof row !== 'object' || row === null) {
-          throw new Error('Invalid row data from database');
-        }
-        const leadRow = row as string[];
+      const leads = rawRows.map((row: any[]) => {
+        const rawLeadData: { [key: string]: any } = {};
+        columnNames.forEach((colName, index) => {
+          rawLeadData[colName] = row[index];
+        });
 
-        return {
-          first_name: leadRow[0] as string | null,
-          last_name: leadRow[1] as string | null,
-          email: leadRow[2] as string | null,
-          phone_number: (leadRow[3] || leadRow[4]) as string | null,
-          company: (validated.company || leadRow[5]) as string | null,
-          title: (validated.title || leadRow[6]) as string | null,
+        const validated = validateAndTransformLead(rawLeadData);
+
+        // Start with validated data, then overlay raw data, then specific mappings
+        const lead = {
+          ...rawLeadData, // Include all raw data
+          ...validated, // Overlay validated/transformed data
+          // Explicit mappings for core Lead properties, ensuring correct types
+          first_name: rawLeadData.first_name as string | null,
+          last_name: rawLeadData.last_name as string | null,
+          email: rawLeadData.email as string | null,
+          phone_number: (rawLeadData.cell || rawLeadData.phone) as string | null,
+          company: (validated.company || rawLeadData.company) as string | null,
+          title: (validated.title || rawLeadData.title) as string | null,
           product_interest: validated.product_interest,
-          notes: (validated.notes || leadRow[8]) as string | null,
-          customer_facing_notes: null,
+          notes: (validated.notes || rawLeadData.notes) as string | null,
+          customer_facing_notes: rawLeadData.customer_facing_notes as string | null,
+          // Ensure '#' is included if it exists in rawLeadData
+          '#': rawLeadData['#'] as string | null | undefined,
         };
+
+        return lead;
       });
       return leads;
     } finally {

@@ -26,7 +26,7 @@ describe('CLI', () => {
       cell_phone: 'phone_number',
       product_interest: 'product_interest',
       customer_notes: 'notes',
-    }, // Added headerMapping
+    },
   };
 
   let tempHtmlFilePath: string;
@@ -35,38 +35,20 @@ describe('CLI', () => {
 
   const createMockUrlConfig = (overrides?: Partial<UrlConfig>): UrlConfig => ({
     baseUrl: overrides?.baseUrl || 'https://example.com/pages/b2b-marketing-opt-in',
-    staticParams: {
+    searchParams: {
       utm_source: 'postmark',
       utm_medium: 'email',
       utm_campaign: 'test_campaign',
-      ...overrides?.staticParams,
-    },
-    dbParamMapping: {
-      first_name: 'first_name',
-      'custom#company': 'company',
-      'custom#what_type_of_products_are_you_interested_in': 'product_interest',
-      ...overrides?.dbParamMapping,
+      first_name: '{{first_name}}',
+      'custom#company': '{{company}}',
+      'custom#what_type_of_products_are_you_interested_in': '{{product_interest}}',
+      ...overrides?.searchParams,
     },
   });
 
   // Helper to get expected reserved keys dynamically
-  const getExpectedReservedKeys = (urlConfig: UrlConfig) => {
-    // Simulate the headers returned by GoogleSheetsLeadService
-    const googleSheetHeaders = [
-      '#',
-      'company',
-      'title',
-      'first_name',
-      'last_name',
-      'email',
-      'cell_phone',
-      'product_interest',
-      'customer_notes',
-    ];
-
-    const staticParamKeys = Object.keys(urlConfig.staticParams);
-
-    const allReservedKeys = new Set<string>([...googleSheetHeaders, ...staticParamKeys]);
+  const getExpectedReservedKeys = (googleSheetHeaders: string[]) => {
+    const allReservedKeys = new Set<string>([...googleSheetHeaders]);
     return Array.from(allReservedKeys).sort().join(', ');
   };
 
@@ -155,6 +137,7 @@ describe('CLI', () => {
         subject: 'Test Subject',
         textBody: 'Test Text Body',
         templateData: {},
+        headerMapping: baseConfig.headerMapping!, // Use non-null assertion
       },
       baseConfig
     );
@@ -181,6 +164,7 @@ describe('CLI', () => {
           campaign: 'test_campaign',
           action_url: createMockUrlConfig(),
         },
+        headerMapping: baseConfig.headerMapping!, // Pass headerMapping
       },
       baseConfig
     );
@@ -211,6 +195,7 @@ describe('CLI', () => {
           campaign: 'test_campaign',
           action_url: createMockUrlConfig(),
         },
+        headerMapping: baseConfig.headerMapping!, // Pass headerMapping
       },
       baseConfig
     );
@@ -241,18 +226,16 @@ describe('CLI', () => {
           campaign: 'test_campaign',
           action_url: {
             baseUrl: 'https://example.com/pages/b2b-marketing-opt-in',
-            staticParams: {
+            searchParams: {
               utm_source: 'postmark',
               utm_medium: 'email',
               utm_campaign: 'test_campaign',
-            },
-            dbParamMapping: {
-              first_name: 'first_name',
-              'custom#company': 'company',
-              'custom#what_type_of_products_are_you_interested_in': 'product_interest',
+              first_name: '{{first_name}}',
+              'custom#company': '{{company}}',
             },
           },
         },
+        headerMapping: baseConfig.headerMapping!, // Use non-null assertion
       },
       baseConfig
     );
@@ -263,13 +246,14 @@ describe('CLI', () => {
     expect(firstCallArgs.HtmlBody).toContain(`This is a test email for test_campaign.`);
     // The action_url will contain query params, so we check for the base URL
     expect(firstCallArgs.HtmlBody).toContain(
-      `href="https://example.com/pages/b2b-marketing-opt-in`
+      `href="https://example.com/pages/b2b-marketing-opt-in?utm_source=postmark&utm_medium=email&utm_campaign=test_campaign&first_name=GenericFirstName&custom%23company=Example+Company`
     );
   });
 
   it('should replace placeholders in the subject line from auto-generated data', async () => {
     server.use(
       http.get('https://api.postmarkapp.com/messages/outbound', () => {
+        // Corrected URL
         return HttpResponse.json({ TotalCount: 0 });
       })
     );
@@ -286,6 +270,7 @@ describe('CLI', () => {
         templateData: {
           campaign: 'test_campaign',
         },
+        headerMapping: baseConfig.headerMapping!, // Pass headerMapping
       },
       baseConfig
     );
@@ -308,21 +293,20 @@ describe('CLI', () => {
 
     const mockUrlConf = createMockUrlConfig();
     // Updated expectedReservedKeys to include #
-    const expectedReservedKeys = Array.from(
-      new Set([
-        '#',
-        'company',
-        'title',
-        'first_name',
-        'last_name',
-        'email',
-        'cell_phone',
-        'product_interest',
-        'customer_notes',
-      ])
-    )
-      .sort()
-      .join(', ');
+    const expectedReservedKeys = getExpectedReservedKeys([
+      '#',
+      'cell_phone',
+      'company',
+      'customer_facing_notes',
+      'customer_notes',
+      'email',
+      'first_name',
+      'last_name',
+      'notes',
+      'phone_number',
+      'product_interest',
+      'title',
+    ]);
 
     const expectedErrorMessage = `Conflict detected in templateData keys: first_name. Reserved keys are: ${expectedReservedKeys}. These keys are automatically generated and cannot be overridden.`;
 
@@ -334,6 +318,7 @@ describe('CLI', () => {
           source: 'google-sheets',
           subject: 'Test Subject',
           templateData: conflictingTemplateData,
+          headerMapping: baseConfig.headerMapping!, // Pass headerMapping
         },
         baseConfig
       )
@@ -354,21 +339,20 @@ describe('CLI', () => {
 
     const mockUrlConf = createMockUrlConfig({});
     // Updated expectedReservedKeys to include #
-    const expectedReservedKeys = Array.from(
-      new Set([
-        '#',
-        'company',
-        'title',
-        'first_name',
-        'last_name',
-        'email',
-        'cell_phone',
-        'product_interest',
-        'customer_notes',
-      ])
-    )
-      .sort()
-      .join(', ');
+    const expectedReservedKeys = getExpectedReservedKeys([
+      '#',
+      'cell_phone',
+      'company',
+      'customer_facing_notes',
+      'customer_notes',
+      'email',
+      'first_name',
+      'last_name',
+      'notes',
+      'phone_number',
+      'product_interest',
+      'title',
+    ]);
 
     const expectedErrorMessage = `Conflict detected in templateData keys: ${customUrlKey}. Reserved keys are: ${expectedReservedKeys}. These keys are automatically generated and cannot be overridden.`;
 
@@ -380,6 +364,7 @@ describe('CLI', () => {
           source: 'google-sheets',
           subject: 'Test Subject',
           templateData: conflictingTemplateData,
+          headerMapping: baseConfig.headerMapping!, // Pass headerMapping
         },
         baseConfig
       )

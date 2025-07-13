@@ -17,8 +17,8 @@ Rename and modify the `buildOptInUrl` function in `src/utils/url.ts` to `buildUr
 ## Acceptance Criteria
 
 - [x] The `buildOptInUrl` function in `src/utils/url.ts` is renamed to `buildUrl`.
-- [x] The `buildUrl` function accepts a `urlConfig` object (containing `baseUrl`, `staticParams`, and `dbParamMapping`) and a `Lead` object as parameters.
-- [x] The `buildUrl` function correctly constructs the URL by applying `staticParams` from `urlConfig`.
+- [x] The `buildUrl` function accepts a `urlConfig` object (containing `baseUrl`, `searchParams`, and `dbParamMapping`) and a `Lead` object as parameters.
+- [x] The `buildUrl` function correctly constructs the URL by applying `searchParams` from `urlConfig`.
 - [x] The `buildUrl` function correctly constructs the URL by mapping `dbParamMapping` from `urlConfig` to `Lead` object properties.
 - [x] All hardcoded URL parameters within the function are replaced by values from `urlConfig`.
 

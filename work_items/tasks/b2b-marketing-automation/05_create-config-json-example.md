@@ -17,8 +17,8 @@ Create a new file `config.json.example` at the project root to serve as a templa
 ## Acceptance Criteria
 
 - [x] A file named `config.json.example` exists at the project root.
-- [x] The `config.json.example` file contains a `urlConfig` object with `baseUrl`, `staticParams`, and `dbParamMapping` properties.
-- [x] The `staticParams` object includes example UTM parameters.
+- [x] The `config.json.example` file contains a `urlConfig` object with `baseUrl`, `searchParams`, and `dbParamMapping` properties.
+- [x] The `searchParams` object includes example UTM parameters.
 - [x] The `dbParamMapping` array includes example mappings for lead/database fields to URL parameters.
 
 ## Context/Links

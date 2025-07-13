@@ -25,31 +25,27 @@
     "my_product_name": "My product",
     "action_url": {
       "baseUrl": "https://example.com/pages/b2b-marketing-opt-in",
-      "staticParams": {
+      "searchParams": {
         "utm_source": "postmark",
         "utm_medium": "email",
-        "utm_campaign": "b2b_campaign_default"
-      },
-      "dbParamMapping": {
-        "first_name": "first_name",
-        "last_name": "last_name",
-        "email": "email",
-        "phone_number": "phone_number",
-        "custom#company": "company",
-        "custom#title": "title",
-        "custom#what_type_of_products_are_you_interested_in": "product_interest",
-        "custom#notes": "notes"
+        "utm_campaign": "b2b_campaign_default",
+        "first_name": "{{first_name}}",
+        "last_name": "{{last_name}}",
+        "email": "{{email}}",
+        "phone_number": "{{phone_number}}",
+        "custom#company": "{{company}}",
+        "custom#title": "{{title}}",
+        "custom#what_type_of_products_are_you_interested_in": "{{product_interest}}",
+        "custom#notes": "{{notes}}"
       }
     },
     "product_link": {
       "baseUrl": "https://example.com/products",
-      "staticParams": {
+      "searchParams": {
         "source": "email_campaign",
         "medium": "b2b",
-        "product_id": "{{my_product_name}}"
-      },
-      "dbParamMapping": {
-        "customer_id": "#"
+        "product_id": "{{my_product_name}}",
+        "customer_id": "{{#}}"
       }
     }
   }

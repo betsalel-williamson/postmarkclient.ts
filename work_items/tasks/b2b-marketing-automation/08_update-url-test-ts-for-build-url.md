@@ -17,7 +17,7 @@ Modify `src/utils/url.test.ts` to update existing tests and add new tests that c
 ## Acceptance Criteria
 
 - [x] Existing tests in `src/utils/url.test.ts` are updated to use the new `buildUrl` function signature and `urlConfig`.
-- [x] New test cases are added to verify URL generation with different `staticParams` configurations.
+- [x] New test cases are added to verify URL generation with different `searchParams` configurations.
 - [x] New test cases are added to verify URL generation with different `dbParamMapping` configurations, including cases where lead fields are missing.
 - [x] All tests pass successfully after the changes.
 

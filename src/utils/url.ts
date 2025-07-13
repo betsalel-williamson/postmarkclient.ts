@@ -1,31 +1,29 @@
-import { Lead } from '../services/leadService.types';
-
 export interface UrlConfig {
   baseUrl: string;
-  staticParams: { [key: string]: string };
-  dbParamMapping: { [key: string]: keyof Lead };
+  searchParams: { [key: string]: string };
 }
 
 export function isUrlConfig(obj: object) {
-  return 'baseUrl' in obj && 'staticParams' in obj && 'dbParamMapping' in obj;
+  return 'baseUrl' in obj && 'searchParams' in obj;
 }
 
-export function buildUrl(config: UrlConfig, lead: Lead): string {
+export function buildUrl(
+  config: UrlConfig,
+  keyValueMap: { [key: string]: string | null | undefined }
+): string {
   const url = new URL(config.baseUrl);
   const searchParams = new URLSearchParams(url.search);
 
-  // Set static parameters
-  for (const key in config.staticParams) {
-    searchParams.set(key, config.staticParams[key]);
-  }
+  // Set parameters from searchParams, resolving placeholders
+  for (const key in config.searchParams) {
+    let value = config.searchParams[key];
+    const placeholderMatch = value.match(/^{{(.*)}}$/);
 
-  // Set dynamic parameters from lead data
-  for (const paramName in config.dbParamMapping) {
-    const leadKey = config.dbParamMapping[paramName];
-    const value = lead[leadKey];
-    if (value) {
-      searchParams.set(paramName, String(value));
+    if (placeholderMatch) {
+      const placeholderKey = placeholderMatch[1];
+      value = String(keyValueMap[placeholderKey] || '');
     }
+    searchParams.set(key, value);
   }
 
   url.search = searchParams.toString();

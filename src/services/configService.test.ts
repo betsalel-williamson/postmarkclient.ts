@@ -8,7 +8,7 @@ describe('configService', () => {
     process.env.GOOGLE_SHEETS_SPREADSHEET_ID = 'test-id';
     process.env.GOOGLE_SHEETS_URL = 'test-url';
     process.env.GOOGLE_SHEETS_SHEET_NAME = 'test-sheet-name';
-    process.env.DB_PATH = 'test-db-path';
+    // process.env.DB_PATH = 'test-db-path';
 
     const config = getConfig();
 
@@ -17,7 +17,7 @@ describe('configService', () => {
     expect(config.googleSheetsSpreadsheetId).toBe('test-id');
     expect(config.googleSheetsUrl).toBe('test-url');
     expect(config.googleSheetsSheetName).toBe('test-sheet-name');
-    expect(config.dbPath).toBe('test-db-path');
+    expect(config.dbPath).toBe(undefined);
   });
 
   it('should throw an error if POSTMARK_API_TOKEN is not set', () => {

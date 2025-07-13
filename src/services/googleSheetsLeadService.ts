@@ -1,12 +1,14 @@
 import { Lead, LeadService } from './leadService.types';
 import { GoogleSheetsApi } from './googleSheetsApi';
 import { Config } from './configService';
+import { validateAndTransformLead } from '../utils/validation';
 
-export class GoogleSheetsLeadService implements LeadService {
+export class GoogleSheetsLeadService extends LeadService {
   private config: Config;
-  private _headerMapping: Record<string, keyof Lead>;
 
   constructor(config: Config) {
+    super(config);
+
     if (!config.googleSheetsKeyFilePath) {
       throw new Error('GOOGLE_GCP_CREDENTIALS_PATH not set in .env file');
     }
@@ -23,7 +25,7 @@ export class GoogleSheetsLeadService implements LeadService {
       throw new Error('headerMapping not provided in config.');
     }
     this.config = config;
-    this._headerMapping = config.headerMapping; // This is now correctly typed as Record<string, keyof Lead>
+    this._headerMapping = config.headerMapping;
   }
 
   private async _getHeaders(): Promise<string[]> {
@@ -52,12 +54,12 @@ export class GoogleSheetsLeadService implements LeadService {
   }
 
   public async getReservedTemplateKeys(): Promise<Set<string>> {
+    const superHeaders = await super.getReservedTemplateKeys();
     const headers = await this._getHeaders();
-    // Return the actual headers from the Google Sheet as reserved keys
-    return new Set(headers);
+    return new Set([...headers, ...superHeaders]);
   }
 
-  public async getLeads(): Promise<Lead[]> {
+  public async getLeads() {
     const api = new GoogleSheetsApi(this.config.googleSheetsKeyFilePath as string);
 
     let spreadsheetId = this.config.googleSheetsSpreadsheetId;
@@ -91,22 +93,26 @@ export class GoogleSheetsLeadService implements LeadService {
       throw new Error("The first column must be '#'.");
     }
 
-    const leads: Partial<Lead>[] = dataRows.map((row, index) => {
+    const leads = dataRows.map((row, index) => {
       if (!row[0]) {
         throw new Error(`Missing ID for row ${index + 2}`);
       }
 
-      const lead: Partial<Lead> = {};
+      const rawLeadData: { [key: string]: string | null | undefined } = {};
       headers.forEach((header, i) => {
-        // Ensure header exists in _headerMapping and its value is a valid keyof Lead
-        if (this._headerMapping[header]) {
-          const mappedHeader: keyof Lead = this._headerMapping[header];
-          lead[mappedHeader] = row[i] || null;
-        }
+        rawLeadData[this._headerMapping[header]] = row[i] || null;
       });
+
+      const validated = validateAndTransformLead(rawLeadData);
+
+      // Construct the Lead object, ensuring all raw data is included
+      const lead = {
+        ...validated, // Overlay validated/transformed data
+      };
+
       return lead;
     });
 
-    return leads as Lead[];
+    return leads;
   }
 }

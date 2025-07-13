@@ -92,6 +92,8 @@ describe('DuckDbLeadService', () => {
         'email',
         'cell',
         'phone',
+        'phone_number',
+        'product_interest',
         'company',
         'title',
         'products',

@@ -6,7 +6,8 @@ import { ServerClient } from 'postmark';
 import { Config, getConfig } from './services/configService';
 import * as fs from 'fs/promises';
 import { piiLog } from './utils/piiLogger';
-import { convert } from 'html-to-text';
+import { processTemplate } from './utils/templateProcessor';
+import { Lead } from './services/leadService.types';
 
 export async function run(
   argv: {
@@ -17,11 +18,15 @@ export async function run(
     subject: string;
     textBody?: string;
     templateData: Record<string, string | UrlConfig>;
+    headerMapping: Record<string, string>; // Added headerMapping to argv
   },
   config: Config
 ) {
-  const client = new ServerClient(config.postmarkServerToken);
-  const leadService = createLeadService(argv.source, config);
+  // Merge headerMapping from argv into config for leadService initialization
+  const currentConfig = { ...config, headerMapping: argv.headerMapping };
+
+  const client = new ServerClient(currentConfig.postmarkServerToken);
+  const leadService = createLeadService(argv.source, currentConfig);
   const leads = await leadService.getLeads();
 
   const htmlTemplate = await fs.readFile(argv.htmlTemplatePath, 'utf-8');
@@ -61,47 +66,26 @@ export async function run(
     // Dynamically add lead properties
     for (const key of Array.from(leadServiceReservedKeys)) {
       if (Object.prototype.hasOwnProperty.call(lead, key)) {
-        currentTemplateData[key] = (lead as any)[key];
+        currentTemplateData[key] = String(lead[key] || '');
       }
     }
 
     // User-provided templateData last to allow user overrides for non-reserved keys
     Object.assign(currentTemplateData, argv.templateData);
 
-    let personalizedHtml = htmlTemplate;
-    let personalizedSubject = argv.subject;
-
-    // Dynamically replace placeholders from templateData
-    for (const key in currentTemplateData) {
-      if (Object.prototype.hasOwnProperty.call(currentTemplateData, key)) {
-        const value = currentTemplateData[key];
-        if (typeof value === 'string') {
-          personalizedHtml = personalizedHtml.replace(
-            new RegExp(`{{${key}}}`, 'g'),
-            String(value || '')
-          );
-          personalizedSubject = personalizedSubject.replace(
-            new RegExp(`{{${key}}}`, 'g'),
-            String(value || '')
-          );
-          continue;
-        }
-
-        if (isUrlConfig(value as Object)) {
-          personalizedHtml = personalizedHtml.replace(
-            new RegExp(`{{${key}}}`, 'g'),
-            String(buildUrl(value as UrlConfig, lead) || '')
-          );
-        }
-      }
-    }
+    const { personalizedHtml, personalizedSubject, personalizedText } = processTemplate(
+      htmlTemplate,
+      argv.subject,
+      currentTemplateData,
+      lead
+    );
 
     await client.sendEmail({
       From: argv.from,
       To: lead.email,
       HtmlBody: personalizedHtml,
       Subject: personalizedSubject,
-      TextBody: argv.textBody || convert(personalizedHtml, { wordwrap: 130 }),
+      TextBody: argv.textBody || personalizedText,
     });
 
     console.log(`Email sent to recipient.`);
@@ -156,8 +140,8 @@ export async function main() {
               type: 'string',
               default: '{}',
             })
-            .option('url-config', {
-              describe: 'JSON string of URL configuration for dynamic URL generation',
+            .option('header-mapping', {
+              describe: 'JSON string of key-value pairs for header mapping',
               type: 'string',
               demandOption: true,
             });
@@ -173,6 +157,7 @@ export async function main() {
               subject: argv.subject as string,
               textBody: argv.textBody as string,
               templateData: JSON.parse(argv.templateData as string, customReviver),
+              headerMapping: JSON.parse(argv.headerMapping as string),
             },
             config
           );
@@ -196,6 +181,9 @@ export async function main() {
               runConfig.forceSend = runConfig.forceSend
                 .split(',')
                 .map((email: string) => email.trim());
+            }
+            if (!runConfig.headerMapping) {
+              throw new Error('headerMapping is required in the config file.');
             }
             await run(runConfig, config);
           } catch (error) {
@@ -235,8 +223,7 @@ function customReviver(
     typeof value === 'object' &&
     value !== null &&
     'baseUrl' in value &&
-    'staticParams' in value &&
-    'dbParamMapping' in value
+    'searchParams' in value // Changed from searchParams
   ) {
     return value as UrlConfig;
   }

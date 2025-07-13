@@ -236,6 +236,20 @@ describe('GoogleSheetsLeadService', () => {
     };
     const service = new GoogleSheetsLeadService(config);
     const reservedKeys = await service.getReservedTemplateKeys();
-    expect(reservedKeys).toEqual(new Set(['#', 'first_name', 'email', 'company', 'custom_field']));
+    expect(reservedKeys).toEqual(
+      new Set([
+        '#',
+        'company',
+        'custom_field',
+        'customer_facing_notes',
+        'email',
+        'first_name',
+        'last_name',
+        'notes',
+        'phone_number',
+        'product_interest',
+        'title',
+      ])
+    );
   });
 });

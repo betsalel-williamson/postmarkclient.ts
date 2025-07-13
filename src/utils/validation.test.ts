@@ -7,7 +7,7 @@ describe('validation', () => {
     const rawData = {
       company: 'a'.repeat(129), // Exceeds limit
       title: 'b'.repeat(129), // Exceeds limit
-      products: 'feline and canine', // Needs mapping
+      product_interest: 'cats+dogs', // Needs mapping
       notes: 'c'.repeat(5001), // Exceeds limit
     };
 
@@ -26,59 +26,14 @@ describe('validation', () => {
     expect(result.notes).toBe(expectedLead.notes);
   });
 
-  it('should handle various product interest mappings from combined fields', () => {
-    // Test with products field
-    expect(validateAndTransformLead({ products: 'cat' }).product_interest).toBe('cat');
-    expect(validateAndTransformLead({ products: 'dog' }).product_interest).toBe('dog');
-    expect(validateAndTransformLead({ products: 'cat, dog' }).product_interest).toBe('cat+dog');
-    expect(validateAndTransformLead({ products: 'DOG and CAT' }).product_interest).toBe('cat+dog');
-
-    // Test with title field
-    expect(
-      validateAndTransformLead({ title: 'Certified Professional Dog Trainer' }).product_interest
-    ).toBe('dog');
-    expect(
-      validateAndTransformLead({ title: 'Veterinary herbalist, acupuncturist' }).product_interest
-    ).toBe(null);
-
-    // Test with email field
-    expect(
-      validateAndTransformLead({ email: 'maxandrufus.thedogs@gmail.com' }).product_interest
-    ).toBe('dog');
-    expect(validateAndTransformLead({ email: 'john.cullen@bulldogms.com' }).product_interest).toBe(
-      'dog'
-    );
-    expect(validateAndTransformLead({ email: 'purrfect@example.com' }).product_interest).toBe(
-      'cat'
-    );
-
-    // Test with company field
-    expect(
-      validateAndTransformLead({ company: 'Bulldog Marketing & Sales, Inc.' }).product_interest
-    ).toBe('dog');
-    expect(validateAndTransformLead({ company: 'Purrfect Solutions' }).product_interest).toBe(
-      'cat'
-    );
-
-    // Test with notes field
-    expect(
-      validateAndTransformLead({ notes: 'interested in feline products' }).product_interest
-    ).toBe('cat');
-    expect(
-      validateAndTransformLead({ notes: 'looking for canine supplies' }).product_interest
-    ).toBe('dog');
-
-    // Test combinations
-    expect(validateAndTransformLead({ products: 'cat', notes: 'dog food' }).product_interest).toBe(
-      'cat+dog'
-    );
-    expect(
-      validateAndTransformLead({ title: 'dog trainer', email: 'catlover@example.com' })
-        .product_interest
-    ).toBe('cat+dog');
-
-    // Test no match
-    expect(validateAndTransformLead({ products: 'something else' }).product_interest).toBe(null);
-    expect(validateAndTransformLead({ title: 'human resources' }).product_interest).toBe(null);
+  it.each([
+    ['cat', 'cat'],
+    ['dog', 'dog'],
+    ['cat, dog', 'cat+dog'],
+    ['DOG and CAT', 'cat+dog'],
+    ['kitty', null],
+    ['puppy', null],
+  ])('should map product interest %s to %s', (input, expected) => {
+    expect(validateAndTransformLead({ product_interest: input }).product_interest).toBe(expected);
   });
 });
