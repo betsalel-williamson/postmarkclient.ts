@@ -1,35 +1,47 @@
 {
+  "description": "B2B Marketing Campaign",
   "from": "info@example.com",
-  "campaign": "q3-lead-nurturing",
   "htmlTemplatePath": "./dist/templates/b2b-template.html",
   "source": "google-sheets",
+  "headerMapping": {
+    "company": "company",
+    "title": "title",
+    "first_name": "first_name",
+    "last_name": "last_name",
+    "email": "email",
+    "cell_phone": "phone_number",
+    "product_interest": "product_interest",
+    "customer_notes": "notes"
+  },
   "forceSend": [],
-  "subject": "Your personalized subject line",
+  "subject": "{{my_company_name}} personalized subject line with {{my_product_name}}",
   "templateData": {
-    "company_name": "My company",
-    "company_address": "My address",
+    "my_company_name": "My company",
+    "my_company_address": "My address",
     "legal_entity": "My legal company name",
     "facebook_url": "https://www.facebook.com/",
     "instagram_url": "https://www.instagram.com/",
     "product_url": "https://example.com",
-    "product_name": "My product"
+    "my_product_name": "My product"
   },
-  "urlConfig": {
-    "baseUrl": "https://example.com/pages/b2b-marketing-opt-in",
-    "staticParams": {
-      "utm_source": "postmark",
-      "utm_medium": "email",
-      "utm_campaign": "b2b_campaign_default"
-    },
-    "dbParamMapping": {
-      "first_name": "first_name",
-      "last_name": "last_name",
-      "email": "email",
-      "phone_number": "phone_number",
-      "custom#company": "company",
-      "custom#title": "title",
-      "custom#what_type_of_products_are_you_interested_in": "product_interest",
-      "custom#notes": "notes"
+  "urls": {
+    "action_url": {
+      "baseUrl": "https://example.com/pages/b2b-marketing-opt-in",
+      "staticParams": {
+        "utm_source": "postmark",
+        "utm_medium": "email",
+        "utm_campaign": "b2b_campaign_default"
+      },
+      "dbParamMapping": {
+        "first_name": "first_name",
+        "last_name": "last_name",
+        "email": "email",
+        "phone_number": "phone_number",
+        "custom#company": "company",
+        "custom#title": "title",
+        "custom#what_type_of_products_are_you_interested_in": "product_interest",
+        "custom#notes": "notes"
+      }
     }
   }
 }
