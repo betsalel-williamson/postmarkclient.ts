@@ -1,16 +1,10 @@
 # Postmark CLI Helper
 
-> ⚠️ PROJECT ABANDONED ⚠️
->
-> This project has been abandoned and its functionality is being migrated to a new repository: [https://github.com/betsalel-williamson/GenAIBusinessCardScanner](https://github.com/betsalel-williamson/GenAIBusinessCardScanner).
-
----
-
-This project provides a command-line interface (CLI) application to automate sending personalized email blasts using Postmark, leveraging lead data from a DuckDB database.
+This project provides a command-line interface (CLI) application to automate sending personalized email blasts using Postmark, leveraging lead data primarily from Google Sheets, but also supporting other sources. It is designed for flexible and configurable email campaigns.
 
 ## Features
 
-- Reads lead data from an existing `business_cards.duckdb` file.
+- Reads lead data from various sources, including Google Sheets and DuckDB.
 - Validates and transforms lead information (e.g., character limits, product interest mapping).
 - Generates unique, pre-filled form URLs for each lead, including UTM tracking parameters.
 - Sends personalized emails via Postmark using a specified template.
@@ -50,48 +44,20 @@ This project provides a command-line interface (CLI) application to automate sen
 
    _Note: Ensure this key file is stored securely and is not committed to version control._
 
-5. **Ensure your DuckDB database is present:**
+5. **Configuration File Example:**
+   A `config.json.example` file is provided at the project root. This file outlines the structure for configuring various aspects of the application, including the new configurable URL generation.
+
+6. **Ensure your DuckDB database is present:**
    Place your `business_cards.duckdb` file in the root of the project. The application will read lead data from the `stg_cards_data` table within this database.
 
 ## Usage
 
-To send email blasts using command-line arguments, use the `send` command with the required arguments:
+To send email blasts, use the `send` command with command-line arguments or the `send-from-config` command with a JSON configuration file.
 
-```bash
-npm start -- send <from_email> <campaign_name> <postmark_template_alias>
-```
+For detailed usage examples and configuration, please refer to the `examples/` directory:
 
-- `<from_email>`: The sender's email address (e.g., `marketing@yourcompany.com`).
-- `<campaign_name>`: A name for your marketing campaign (e.g., `summer-promo-2025`). This will be used for UTM tracking in the generated URLs.
-- `<postmark_template_alias>`: The alias of the email template you have configured in your Postmark account (e.g., `b2b-opt-in`). This template should include merge tags for personalization and an `action_url` for the pre-filled form link.
-
-**Example:**
-
-```bash
-npm start -- send "info@example.com" "q3-lead-nurturing" "my-custom-template"
-```
-
-To send email blasts using a JSON configuration file, use the `send-from-config` command:
-
-```bash
-npm start -- send-from-config <path_to_config_file.json>
-```
-
-**Example JSON Configuration File (`config.json`):**
-
-```json
-{
-  "from": "info@example.com",
-  "campaign": "q3-lead-nurturing",
-  "htmlTemplatePath": "./dist/templates/b2b-template.html",
-  "source": "duckdb",
-  "forceSend": [],
-  "subject": "Your personalized subject line",
-  "textBody": "Your plain text email body." // Optional: Generated from HTML if not provided
-}
-```
-
-- `<path_to_config_file.json>`: The path to your JSON configuration file. This file should contain all the necessary parameters for sending emails.
+- `examples/send-command-example.sh`: Example of using the `send` command with command-line arguments.
+- `examples/config-example.json`: Example of a JSON configuration file for the `send-from-config` command.
 
 ## Development
 
@@ -110,12 +76,3 @@ To compile the TypeScript code:
 ```bash
 npm run build
 ```
-
-## Project Structure
-
-- `src/index.ts`: Main CLI application logic.
-- `src/services/leadService.ts`: Handles database interactions and lead retrieval.
-- `src/utils/validation.ts`: Contains data validation and transformation logic.
-- `src/utils/url.ts`: Responsible for generating personalized URLs.
-- `src/mocks/`: Mock Service Worker setup for API testing.
-- `work_items/`: User stories and tasks defining project scope and progress.
