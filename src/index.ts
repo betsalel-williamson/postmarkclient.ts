@@ -43,19 +43,24 @@ export async function run(
 
     // Prepare templateData with dynamic values, allowing argv.templateData to override
     const currentTemplateData: Record<string, string | number | boolean | null | undefined> = {
-      ...argv.templateData, // User-provided templateData first
       first_name: lead.first_name || '',
       campaign: argv.urlConfig.staticParams.utm_campaign || '',
       action_url: url || '',
+      ...argv.templateData, // User-provided templateData last to allow user overrides
     };
 
     let personalizedHtml = htmlTemplate;
+    let personalizedSubject = argv.subject;
 
     // Dynamically replace placeholders from templateData
     for (const key in currentTemplateData) {
       if (Object.prototype.hasOwnProperty.call(currentTemplateData, key)) {
         const value = currentTemplateData[key];
         personalizedHtml = personalizedHtml.replace(
+          new RegExp(`{{${key}}}`, 'g'),
+          String(value || '')
+        );
+        personalizedSubject = personalizedSubject.replace(
           new RegExp(`{{${key}}}`, 'g'),
           String(value || '')
         );
@@ -66,7 +71,7 @@ export async function run(
       From: argv.from,
       To: lead.email,
       HtmlBody: personalizedHtml,
-      Subject: argv.subject,
+      Subject: personalizedSubject,
       TextBody: argv.textBody || convert(personalizedHtml, { wordwrap: 130 }),
     });
 
@@ -176,7 +181,7 @@ export async function main() {
       .demandCommand(1, 'You need at least one command before moving on')
       .help()
       .alias('help', 'h')
-      .strict()
+      .strict() 
       .parseAsync();
   } catch (error) {
     if (error instanceof Error) {

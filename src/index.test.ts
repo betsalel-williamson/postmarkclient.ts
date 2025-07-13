@@ -204,4 +204,37 @@ describe('CLI', () => {
     expect(firstCallArgs.HtmlBody).toContain(`This is a test email for ${customCampaign}.`);
     expect(firstCallArgs.HtmlBody).toContain(`href="${customActionUrl}`);
   });
+
+  it('should replace placeholders in the subject line', async () => {
+    server.use(
+      http.get('https://api.postmarkapp.com/messages/outbound', () => {
+        return HttpResponse.json({ TotalCount: 0 });
+      })
+    );
+
+    const customFirstName = 'SubjectName';
+    const customCampaign = 'SubjectCampaign';
+    const customSubject = `Welcome, {{first_name}} to {{campaign}}!`;
+
+    await run(
+      {
+        from: 'test@example.com',
+        htmlTemplatePath: tempHtmlFilePath,
+        source: 'google-sheets',
+        subject: customSubject,
+        templateData: {
+          first_name: customFirstName,
+          campaign: customCampaign,
+        },
+        urlConfig: createMockUrlConfig({
+          staticParams: { utm_campaign: customCampaign },
+        }),
+      },
+      baseConfig
+    );
+
+    expect(sendEmailMock).toHaveBeenCalledOnce();
+    const firstCallArgs = sendEmailMock.mock.calls[0][0];
+    expect(firstCallArgs.Subject).toBe(`Welcome, ${customFirstName} to ${customCampaign}!`);
+  });
 });
