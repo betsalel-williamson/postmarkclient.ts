@@ -8,8 +8,6 @@ import * as path from 'path';
 import * as os from 'os';
 import { run } from './index';
 import { UrlConfig } from './utils/url';
-import { Lead } from './services/leadService.types';
-import { C } from 'vitest/dist/chunks/reporters.d.BFLkQcL6';
 
 vi.mock('./services/googleSheetsApi');
 

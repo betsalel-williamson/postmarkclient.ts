@@ -7,7 +7,6 @@ import { Config, getConfig } from './services/configService';
 import * as fs from 'fs/promises';
 import { piiLog } from './utils/piiLogger';
 import { convert } from 'html-to-text';
-import { Url } from 'url';
 
 export async function run(
   argv: {
