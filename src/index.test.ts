@@ -79,6 +79,7 @@ describe('CLI', () => {
         source: 'google-sheets',
         subject: 'Test Subject',
         textBody: 'Test Text Body',
+        templateData: {},
       },
       baseConfig
     );
@@ -133,6 +134,7 @@ describe('CLI', () => {
         forceSend: ['john.doe@example.com'],
         subject: 'Test Subject',
         textBody: 'Test Text Body',
+        templateData: {},
       },
       baseConfig
     );
@@ -191,6 +193,7 @@ describe('CLI', () => {
         htmlTemplatePath: tempHtmlFilePath,
         source: 'google-sheets',
         subject: 'Test Subject',
+        templateData: {},
       },
       baseConfig
     );

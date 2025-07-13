@@ -17,6 +17,7 @@ export async function run(
     forceSend?: string[];
     subject: string;
     textBody?: string;
+    templateData: Record<string, string | number | boolean | null | undefined>;
   },
   config: Config
 ) {
@@ -44,9 +45,23 @@ export async function run(
       lead
     );
 
-    let personalizedHtml = htmlTemplate.replace(/{{first_name}}/g, lead.first_name || '');
-    personalizedHtml = personalizedHtml.replace(/{{campaign}}/g, argv.campaign);
-    personalizedHtml = personalizedHtml.replace(/{{action_url}}/g, url);
+    let personalizedHtml = htmlTemplate;
+
+    // Replace lead-specific placeholders
+    personalizedHtml = personalizedHtml.replace(/{{first_name}}/g, lead.first_name || '');
+    personalizedHtml = personalizedHtml.replace(/{{campaign}}/g, argv.campaign || '');
+    personalizedHtml = personalizedHtml.replace(/{{action_url}}/g, url || '');
+
+    // Dynamically replace placeholders from templateData
+    for (const key in argv.templateData) {
+      if (Object.prototype.hasOwnProperty.call(argv.templateData, key)) {
+        const value = argv.templateData[key];
+        personalizedHtml = personalizedHtml.replace(
+          new RegExp(`{{${key}}}`, 'g'),
+          String(value || '')
+        );
+      }
+    }
 
     await client.sendEmail({
       From: argv.from,
@@ -103,9 +118,14 @@ export async function main() {
               demandOption: true,
             })
             .option('text-body', {
-              describe: 'The plain text body for the email',
+              describe:
+                'The plain text body for the email (optional, generated from HTML if not provided)',
               type: 'string',
-              demandOption: true,
+            })
+            .option('template-data', {
+              describe: 'JSON string of key-value pairs for template personalization',
+              type: 'string',
+              default: '{}',
             });
         },
         async (argv) => {
@@ -119,6 +139,7 @@ export async function main() {
               forceSend,
               subject: argv.subject as string,
               textBody: argv.textBody as string,
+              templateData: JSON.parse(argv.templateData as string),
             },
             config
           );
