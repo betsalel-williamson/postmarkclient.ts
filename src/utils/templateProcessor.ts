@@ -1,6 +1,25 @@
 import { convert } from 'html-to-text';
 import { UrlConfig, buildUrl, isUrlConfig } from './url';
 
+export function customReviver(
+  key: string,
+  value: unknown
+): Record<string, string | UrlConfig | number | boolean | null | undefined> | unknown {
+  if (key === '') {
+    // Top-level object
+    return value;
+  }
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    'baseUrl' in value &&
+    'searchParams' in value // Changed from staticParams
+  ) {
+    return value as UrlConfig;
+  }
+  return value;
+}
+
 export function processTemplate(
   htmlTemplate: string,
   subjectTemplate: string,

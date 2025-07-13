@@ -6,12 +6,12 @@ import { Config } from './services/configService';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { run } from './index';
+import { sendEmails } from './emailSender';
 import { UrlConfig } from './utils/url';
 
 vi.mock('./services/googleSheetsApi');
 
-describe('CLI', () => {
+describe('Email Sender', () => {
   const baseConfig: Config = {
     postmarkServerToken: 'test-token',
     googleSheetsKeyFilePath: 'test-path',
@@ -129,18 +129,16 @@ describe('CLI', () => {
       })
     );
 
-    await run(
-      {
-        from: 'test@example.com',
-        htmlTemplatePath: tempHtmlFilePath,
-        source: 'google-sheets',
-        subject: 'Test Subject',
-        textBody: 'Test Text Body',
-        templateData: {},
-        headerMapping: baseConfig.headerMapping!, // Use non-null assertion
-      },
-      baseConfig
-    );
+    await sendEmails({
+      from: 'test@example.com',
+      htmlTemplatePath: tempHtmlFilePath,
+      source: 'google-sheets',
+      subject: 'Test Subject',
+      textBody: 'Test Text Body',
+      templateData: {},
+      headerMapping: baseConfig.headerMapping!, // Use non-null assertion
+      config: baseConfig,
+    });
 
     expect(sendEmailMock).not.toHaveBeenCalled();
   });
@@ -152,22 +150,20 @@ describe('CLI', () => {
       })
     );
 
-    await run(
-      {
-        from: 'test@example.com',
-        htmlTemplatePath: tempHtmlFilePath,
-        source: 'google-sheets',
-        forceSend: ['john.doe@example.com'],
-        subject: 'Test Subject',
-        textBody: 'Test Text Body',
-        templateData: {
-          campaign: 'test_campaign',
-          action_url: createMockUrlConfig(),
-        },
-        headerMapping: baseConfig.headerMapping!, // Pass headerMapping
+    await sendEmails({
+      from: 'test@example.com',
+      htmlTemplatePath: tempHtmlFilePath,
+      source: 'google-sheets',
+      forceSend: ['john.doe@example.com'],
+      subject: 'Test Subject',
+      textBody: 'Test Text Body',
+      templateData: {
+        campaign: 'test_campaign',
+        action_url: createMockUrlConfig(),
       },
-      baseConfig
-    );
+      headerMapping: baseConfig.headerMapping!, // Pass headerMapping
+      config: baseConfig,
+    });
 
     expect(sendEmailMock).toHaveBeenCalled();
     const firstCallArgs = sendEmailMock.mock.calls[0][0];
@@ -185,20 +181,18 @@ describe('CLI', () => {
       })
     );
 
-    await run(
-      {
-        from: 'test@example.com',
-        htmlTemplatePath: tempHtmlFilePath,
-        source: 'google-sheets',
-        subject: 'Test Subject',
-        templateData: {
-          campaign: 'test_campaign',
-          action_url: createMockUrlConfig(),
-        },
-        headerMapping: baseConfig.headerMapping!, // Pass headerMapping
+    await sendEmails({
+      from: 'test@example.com',
+      htmlTemplatePath: tempHtmlFilePath,
+      source: 'google-sheets',
+      subject: 'Test Subject',
+      templateData: {
+        campaign: 'test_campaign',
+        action_url: createMockUrlConfig(),
       },
-      baseConfig
-    );
+      headerMapping: baseConfig.headerMapping!, // Pass headerMapping
+      config: baseConfig,
+    });
 
     expect(sendEmailMock).toHaveBeenCalledOnce();
     const firstCallArgs = sendEmailMock.mock.calls[0][0];
@@ -216,29 +210,27 @@ describe('CLI', () => {
     );
 
     // No templateData provided for these keys, relying on auto-generation
-    await run(
-      {
-        from: 'test@example.com',
-        htmlTemplatePath: tempHtmlFilePath,
-        source: 'google-sheets',
-        subject: 'Test Subject',
-        templateData: {
-          campaign: 'test_campaign',
-          action_url: {
-            baseUrl: 'https://example.com/pages/b2b-marketing-opt-in',
-            searchParams: {
-              utm_source: 'postmark',
-              utm_medium: 'email',
-              utm_campaign: 'test_campaign',
-              first_name: '{{first_name}}',
-              'custom#company': '{{company}}',
-            },
+    await sendEmails({
+      from: 'test@example.com',
+      htmlTemplatePath: tempHtmlFilePath,
+      source: 'google-sheets',
+      subject: 'Test Subject',
+      templateData: {
+        campaign: 'test_campaign',
+        action_url: {
+          baseUrl: 'https://example.com/pages/b2b-marketing-opt-in',
+          searchParams: {
+            utm_source: 'postmark',
+            utm_medium: 'email',
+            utm_campaign: 'test_campaign',
+            first_name: '{{first_name}}',
+            'custom#company': '{{company}}',
           },
         },
-        headerMapping: baseConfig.headerMapping!, // Use non-null assertion
       },
-      baseConfig
-    );
+      headerMapping: baseConfig.headerMapping!, // Use non-null assertion
+      config: baseConfig,
+    });
 
     expect(sendEmailMock).toHaveBeenCalledOnce();
     const firstCallArgs = sendEmailMock.mock.calls[0][0];
@@ -261,19 +253,17 @@ describe('CLI', () => {
     const customSubject = `Welcome, {{first_name}} to {{campaign}}!`;
 
     // No templateData provided for these keys, relying on auto-generation
-    await run(
-      {
-        from: 'test@example.com',
-        htmlTemplatePath: tempHtmlFilePath,
-        source: 'google-sheets',
-        subject: customSubject,
-        templateData: {
-          campaign: 'test_campaign',
-        },
-        headerMapping: baseConfig.headerMapping!, // Pass headerMapping
+    await sendEmails({
+      from: 'test@example.com',
+      htmlTemplatePath: tempHtmlFilePath,
+      source: 'google-sheets',
+      subject: customSubject,
+      templateData: {
+        campaign: 'test_campaign',
       },
-      baseConfig
-    );
+      headerMapping: baseConfig.headerMapping!, // Pass headerMapping
+      config: baseConfig,
+    });
 
     expect(sendEmailMock).toHaveBeenCalledOnce();
     const firstCallArgs = sendEmailMock.mock.calls[0][0];
@@ -311,17 +301,15 @@ describe('CLI', () => {
     const expectedErrorMessage = `Conflict detected in templateData keys: first_name. Reserved keys are: ${expectedReservedKeys}. These keys are automatically generated and cannot be overridden.`;
 
     await expect(
-      run(
-        {
-          from: 'test@example.com',
-          htmlTemplatePath: tempHtmlFilePath,
-          source: 'google-sheets',
-          subject: 'Test Subject',
-          templateData: conflictingTemplateData,
-          headerMapping: baseConfig.headerMapping!, // Pass headerMapping
-        },
-        baseConfig
-      )
+      sendEmails({
+        from: 'test@example.com',
+        htmlTemplatePath: tempHtmlFilePath,
+        source: 'google-sheets',
+        subject: 'Test Subject',
+        templateData: conflictingTemplateData,
+        headerMapping: baseConfig.headerMapping!, // Pass headerMapping
+        config: baseConfig,
+      })
     ).rejects.toThrow(expectedErrorMessage);
   });
 
@@ -357,17 +345,15 @@ describe('CLI', () => {
     const expectedErrorMessage = `Conflict detected in templateData keys: ${customUrlKey}. Reserved keys are: ${expectedReservedKeys}. These keys are automatically generated and cannot be overridden.`;
 
     await expect(
-      run(
-        {
-          from: 'test@example.com',
-          htmlTemplatePath: tempHtmlFilePath,
-          source: 'google-sheets',
-          subject: 'Test Subject',
-          templateData: conflictingTemplateData,
-          headerMapping: baseConfig.headerMapping!, // Pass headerMapping
-        },
-        baseConfig
-      )
+      sendEmails({
+        from: 'test@example.com',
+        htmlTemplatePath: tempHtmlFilePath,
+        source: 'google-sheets',
+        subject: 'Test Subject',
+        templateData: conflictingTemplateData,
+        headerMapping: baseConfig.headerMapping!, // Pass headerMapping
+        config: baseConfig,
+      })
     ).rejects.toThrow(expectedErrorMessage);
   });
 });
