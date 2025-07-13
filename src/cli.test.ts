@@ -121,4 +121,26 @@ describe('CLI', () => {
     await expect(main()).rejects.toThrow('process.exit was called');
     expect(exitSpy).toHaveBeenCalledWith(1);
   });
+
+  it('should throw an error when mutually exclusive options are provided', async () => {
+    process.argv.push(
+      'send',
+      'test@example.com',
+      './template.html',
+      '--source',
+      'google-sheets',
+      '--subject',
+      'Test Subject',
+      '--header-mapping',
+      '{"header":"map"}',
+      '--google-sheets-url',
+      'http://example.com',
+      '--db-path',
+      './test.duckdb'
+    );
+
+    await expect(main()).rejects.toThrow(
+      'Arguments google-sheets-url and db-path are mutually exclusive'
+    );
+  });
 });

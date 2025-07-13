@@ -37,6 +37,10 @@ export async function main() {
               describe: 'The name of the sheet within the Google Sheet (e.g., "Sheet1", "data")',
               type: 'string',
             })
+            .option('db-path', {
+              describe: 'The path to the DuckDB database file',
+              type: 'string',
+            })
             .option('subject', {
               describe: 'The subject line for the email',
               type: 'string',
@@ -56,7 +60,11 @@ export async function main() {
               describe: 'JSON string of key-value pairs for header mapping',
               type: 'string',
               demandOption: true,
-            });
+            })
+            .group(['google-sheets-url', 'google-sheets-sheet-name'], 'Google Sheets Options:')
+            .group(['db-path'], 'DuckDB Options:')
+            .conflicts('google-sheets-url', 'db-path')
+            .conflicts('google-sheets-sheet-name', 'db-path');
         },
         async (argv) => {
           const forceSend = argv.forceSend?.split(',').map((email) => email.trim());
