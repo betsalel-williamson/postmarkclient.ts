@@ -181,7 +181,7 @@ export async function main() {
       .demandCommand(1, 'You need at least one command before moving on')
       .help()
       .alias('help', 'h')
-      .strict() 
+      .strict()
       .parseAsync();
   } catch (error) {
     if (error instanceof Error) {
