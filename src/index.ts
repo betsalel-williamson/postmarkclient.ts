@@ -39,8 +39,8 @@ export async function run(
   if (conflictingKeys.length > 0) {
     throw new Error(
       `Conflict detected in templateData keys: ${conflictingKeys.join(', ')}. ` +
-      `Reserved keys are: ${Array.from(reservedTemplateKeys).sort().join(', ')}. ` +
-      `These keys are automatically generated and cannot be overridden.`
+        `Reserved keys are: ${Array.from(reservedTemplateKeys).sort().join(', ')}. ` +
+        `These keys are automatically generated and cannot be overridden.`
     );
   }
 
@@ -76,7 +76,7 @@ export async function run(
     for (const key in currentTemplateData) {
       if (Object.prototype.hasOwnProperty.call(currentTemplateData, key)) {
         const value = currentTemplateData[key];
-        if (typeof value === "string") {
+        if (typeof value === 'string') {
           personalizedHtml = personalizedHtml.replace(
             new RegExp(`{{${key}}}`, 'g'),
             String(value || '')
@@ -228,13 +228,18 @@ function customReviver(
   key: string,
   value: unknown
 ): Record<string, string | UrlConfig | number | boolean | null | undefined> | unknown {
-  if (key === '') { // Top-level object
+  if (key === '') {
+    // Top-level object
     return value;
   }
-  if (typeof value === 'object' && value !== null && 'baseUrl' in value && 'staticParams' in value && 'dbParamMapping' in value) {
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    'baseUrl' in value &&
+    'staticParams' in value &&
+    'dbParamMapping' in value
+  ) {
     return value as UrlConfig;
   }
   return value;
 }
-
-

@@ -7,7 +7,7 @@ export interface UrlConfig {
 }
 
 export function isUrlConfig(obj: object) {
-  return "baseUrl" in obj && "staticParams" in obj && "dbParamMapping" in obj
+  return 'baseUrl' in obj && 'staticParams' in obj && 'dbParamMapping' in obj;
 }
 
 export function buildUrl(config: UrlConfig, lead: Lead): string {

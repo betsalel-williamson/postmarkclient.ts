@@ -253,7 +253,7 @@ describe('CLI', () => {
               'custom#company': 'company',
               'custom#what_type_of_products_are_you_interested_in': 'product_interest',
             },
-          }
+          },
         },
       },
       baseConfig
