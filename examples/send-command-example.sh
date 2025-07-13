@@ -1,0 +1,3 @@
+#!/bin/bash
+
+npm start -- send "info@example.com" "q3-lead-nurturing" "./dist/templates/b2b-template.html" --source duckdb --subject "Important Update" --template-data '{"company_name": "My company", "company_address": "123 Main St", "legal_entity": "My company inc", "facebook_url": "https://facebook.com/", "instagram_url": "https://instagram.com/", "product_url": "https://example.com", "product_name": "My product"}'

@@ -1,0 +1,17 @@
+{
+  "from": "info@example.com",
+  "campaign": "q3-lead-nurturing",
+  "htmlTemplatePath": "./dist/templates/b2b-template.html",
+  "source": "google-sheets",
+  "forceSend": [],
+  "subject": "Your personalized subject line",
+  "templateData": {
+    "company_name": "My company",
+    "company_address": "My address",
+    "legal_entity": "My legal company name",
+    "facebook_url": "https://www.facebook.com/",
+    "instagram_url": "https://www.instagram.com/",
+    "product_url": "https://example.com",
+    "product_name": "My product"
+  }
+}
