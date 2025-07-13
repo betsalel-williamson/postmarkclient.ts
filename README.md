@@ -58,3 +58,7 @@ For detailed usage examples and configuration, please refer to the `examples/` d
 
 - `examples/send-command-example.sh`: Example of using the `send` command with command-line arguments.
 - `examples/config-example.json`: Example of a JSON configuration file for the `send-from-config` command.
+
+## Development
+
+For development instructions, including how to run tests and build the project, please refer to [DEVELOPMENT.md](DEVELOPMENT.md).

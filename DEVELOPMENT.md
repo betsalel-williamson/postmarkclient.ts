@@ -4,7 +4,7 @@ This document outlines the key practices and commands for developing on this pro
 
 ## Core Development Workflow
 
-This project adheres to princples outlined in `./genai-docs/`
+This project adheres to princples outlined in [system-prompt.md](./genai-docs/system-prompt.md)
 
 ## Getting Started
 
