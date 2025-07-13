@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 
 npm start -- send "saul@willcos.us" "./dist/templates/b2b-template.html" \
   --source google-sheets \
-  --subject "Important Update" \
+  --subject "Important Update from {{ company_name }}" \
   --template-data '{
     "company_name": "My company",
     "company_address": "123 Main St",
