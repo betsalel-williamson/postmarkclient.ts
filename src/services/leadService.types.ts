@@ -12,4 +12,5 @@ export interface Lead {
 
 export interface LeadService {
   getLeads(options?: { [key: string]: any }): Promise<Lead[]>;
+  getReservedTemplateKeys(): Promise<Set<string>>; // Changed to return a Promise
 }

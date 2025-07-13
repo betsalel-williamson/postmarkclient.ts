@@ -22,9 +22,7 @@
     "facebook_url": "https://www.facebook.com/",
     "instagram_url": "https://www.instagram.com/",
     "product_url": "https://example.com",
-    "my_product_name": "My product"
-  },
-  "urls": {
+    "my_product_name": "My product",
     "action_url": {
       "baseUrl": "https://example.com/pages/b2b-marketing-opt-in",
       "staticParams": {
@@ -41,6 +39,17 @@
         "custom#title": "title",
         "custom#what_type_of_products_are_you_interested_in": "product_interest",
         "custom#notes": "notes"
+      }
+    },
+    "product_link": {
+      "baseUrl": "https://example.com/products",
+      "staticParams": {
+        "source": "email_campaign",
+        "medium": "b2b",
+        "product_id": "{{my_product_name}}"
+      },
+      "dbParamMapping": {
+        "customer_id": "#"
       }
     }
   }

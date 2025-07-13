@@ -6,6 +6,10 @@ export interface UrlConfig {
   dbParamMapping: { [key: string]: keyof Lead };
 }
 
+export function isUrlConfig(obj: object) {
+  return "baseUrl" in obj && "staticParams" in obj && "dbParamMapping" in obj
+}
+
 export function buildUrl(config: UrlConfig, lead: Lead): string {
   const url = new URL(config.baseUrl);
   const searchParams = new URLSearchParams(url.search);

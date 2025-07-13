@@ -14,6 +14,30 @@ export class DuckDbLeadService implements LeadService {
     this.config = config;
   }
 
+  public async getReservedTemplateKeys(): Promise<Set<string>> {
+    const dbPath = this.config.dbPath as string;
+    if (!fs.existsSync(dbPath)) {
+      throw new Error(`Database file not found at: ${dbPath}`);
+    }
+
+    const instance = await DuckDBInstance.create(dbPath);
+    const connection = await instance.connect();
+
+    try {
+      const reader = await connection.runAndReadAll(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'stg_cards_data' ORDER BY ordinal_position;"
+      );
+      // Assuming reader.getRows() returns an array of objects, where each object has a 'column_name' property.
+      // If it returns an array of arrays, then row[0] would be appropriate.
+      // Given the error 'undefined', it's likely 'column_name' property is missing or row is an array.
+      // Let's try accessing it as an array element first.
+      const columns = reader.getRows().map((row: any) => row[0]);
+      return new Set(columns);
+    } finally {
+      await connection.disconnectSync();
+    }
+  }
+
   public async getLeads(): Promise<Lead[]> {
     const dbPath = this.config.dbPath as string;
     if (!fs.existsSync(dbPath)) {

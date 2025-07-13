@@ -1,9 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GoogleSheetsLeadService } from './googleSheetsLeadService';
 import { GoogleSheetsApi } from './googleSheetsApi';
 import { Config } from './configService';
+import { Lead } from './leadService.types';
 
-const mockGetValues = vi.fn();
+let mockGetValues = vi.fn();
 
 vi.mock('./googleSheetsApi', () => {
   return {
@@ -16,10 +17,58 @@ vi.mock('./googleSheetsApi', () => {
 });
 
 describe('GoogleSheetsLeadService', () => {
+  const dummyHeaderMapping: Record<string, keyof Lead> = {
+    company: 'company',
+    title: 'title',
+    first_name: 'first_name',
+    last_name: 'last_name',
+    email: 'email',
+    cell_phone: 'phone_number',
+    product_interest: 'product_interest',
+    customer_notes: 'notes',
+  };
+
+  // Reset mock before each test to avoid interference
+  beforeEach(() => {
+    mockGetValues = vi.fn((spreadsheetId: string, range: string) => {
+      if (range.includes('A1:Z')) {
+        // This is a call for headers and data
+        return Promise.resolve([
+          [
+            '#',
+            'company',
+            'title',
+            'first_name',
+            'last_name',
+            'email',
+            'cell_phone',
+            'product_interest',
+            'customer_notes',
+          ],
+          [
+            '1',
+            'Example Company',
+            'Example Title',
+            'GenericFirstName',
+            'GenericLastName',
+            'john.doe@example.com',
+            null,
+            'cat+dog',
+            'test note',
+          ],
+        ]);
+      } else {
+        // This is a call for just headers (e.g., from getReservedTemplateKeys)
+        return Promise.resolve([['#', 'first_name', 'email', 'company', 'custom_field']]);
+      }
+    });
+  });
+
   it('should throw an error if googleSheetsKeyFilePath is not provided', () => {
     const config: Config = {
       postmarkServerToken: 'test-token',
       googleSheetsSpreadsheetId: 'test-id',
+      headerMapping: dummyHeaderMapping,
     };
     expect(() => new GoogleSheetsLeadService(config)).toThrow(
       'GOOGLE_GCP_CREDENTIALS_PATH not set in .env file'
@@ -30,6 +79,7 @@ describe('GoogleSheetsLeadService', () => {
     const config: Config = {
       postmarkServerToken: 'test-token',
       googleSheetsKeyFilePath: 'test-path',
+      headerMapping: dummyHeaderMapping,
     };
     expect(() => new GoogleSheetsLeadService(config)).toThrow(
       'Either GOOGLE_SHEETS_SPREADSHEET_ID or both GOOGLE_SHEETS_URL and GOOGLE_SHEETS_SHEET_NAME must be set in .env file'
@@ -45,6 +95,7 @@ describe('GoogleSheetsLeadService', () => {
       postmarkServerToken: 'test-token',
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsSpreadsheetId: 'test-id',
+      headerMapping: dummyHeaderMapping,
     };
     const service = new GoogleSheetsLeadService(config);
     await expect(service.getLeads()).rejects.toThrow('Headers must be unique.');
@@ -59,6 +110,7 @@ describe('GoogleSheetsLeadService', () => {
       postmarkServerToken: 'test-token',
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsSpreadsheetId: 'test-id',
+      headerMapping: dummyHeaderMapping,
     };
     const service = new GoogleSheetsLeadService(config);
     await expect(service.getLeads()).rejects.toThrow("The first column must be '#'.");
@@ -74,6 +126,7 @@ describe('GoogleSheetsLeadService', () => {
       postmarkServerToken: 'test-token',
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsSpreadsheetId: 'test-id',
+      headerMapping: dummyHeaderMapping,
     };
     const service = new GoogleSheetsLeadService(config);
     await expect(service.getLeads()).rejects.toThrow('Missing ID for row 3');
@@ -108,6 +161,7 @@ describe('GoogleSheetsLeadService', () => {
       postmarkServerToken: 'test-token',
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsSpreadsheetId: 'test-id',
+      headerMapping: dummyHeaderMapping,
     };
     const service = new GoogleSheetsLeadService(config);
     const leads = await service.getLeads();
@@ -148,6 +202,7 @@ describe('GoogleSheetsLeadService', () => {
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsUrl: 'https://docs.google.com/spreadsheets/d/spreadsheet_id_from_url/edit',
       googleSheetsSheetName: 'data',
+      headerMapping: dummyHeaderMapping,
     };
     const service = new GoogleSheetsLeadService(config);
     const leads = await service.getLeads();
@@ -165,8 +220,23 @@ describe('GoogleSheetsLeadService', () => {
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsUrl: 'invalid-url',
       googleSheetsSheetName: 'data',
+      headerMapping: dummyHeaderMapping,
     };
     const service = new GoogleSheetsLeadService(config);
     await expect(service.getLeads()).rejects.toThrow('Invalid Google Sheets URL provided.');
+  });
+
+  it('should return reserved template keys from Google Sheets headers', async () => {
+    // This mock is specifically for getReservedTemplateKeys
+    mockGetValues.mockResolvedValueOnce([['#', 'first_name', 'email', 'company', 'custom_field']]);
+    const config: Config = {
+      postmarkServerToken: 'test-token',
+      googleSheetsKeyFilePath: 'test-path',
+      googleSheetsSpreadsheetId: 'test-id',
+      headerMapping: dummyHeaderMapping,
+    };
+    const service = new GoogleSheetsLeadService(config);
+    const reservedKeys = await service.getReservedTemplateKeys();
+    expect(reservedKeys).toEqual(new Set(['#', 'first_name', 'email', 'company', 'custom_field']));
   });
 });

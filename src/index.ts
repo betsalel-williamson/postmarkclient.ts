@@ -1,12 +1,13 @@
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 import { createLeadService } from './services/leadService';
-import { buildUrl, UrlConfig } from './utils/url';
+import { buildUrl, isUrlConfig, UrlConfig } from './utils/url';
 import { ServerClient } from 'postmark';
 import { Config, getConfig } from './services/configService';
 import * as fs from 'fs/promises';
 import { piiLog } from './utils/piiLogger';
 import { convert } from 'html-to-text';
+import { Url } from 'url';
 
 export async function run(
   argv: {
@@ -16,8 +17,7 @@ export async function run(
     forceSend?: string[];
     subject: string;
     textBody?: string;
-    templateData: Record<string, string | number | boolean | null | undefined>;
-    urlConfig: UrlConfig;
+    templateData: Record<string, string | UrlConfig>;
   },
   config: Config
 ) {
@@ -26,6 +26,23 @@ export async function run(
   const leads = await leadService.getLeads();
 
   const htmlTemplate = await fs.readFile(argv.htmlTemplatePath, 'utf-8');
+
+  // Dynamically determine reserved keys once before the loop
+  const leadServiceReservedKeys = await leadService.getReservedTemplateKeys();
+
+  const reservedTemplateKeys = new Set<string>([...Array.from(leadServiceReservedKeys)]);
+
+  // Check for conflicts with user-provided templateData before processing leads
+  const conflictingKeys = Object.keys(argv.templateData).filter((key) =>
+    reservedTemplateKeys.has(key)
+  );
+  if (conflictingKeys.length > 0) {
+    throw new Error(
+      `Conflict detected in templateData keys: ${conflictingKeys.join(', ')}. ` +
+      `Reserved keys are: ${Array.from(reservedTemplateKeys).sort().join(', ')}. ` +
+      `These keys are automatically generated and cannot be overridden.`
+    );
+  }
 
   for (const lead of leads) {
     if (!lead.email) {
@@ -39,15 +56,18 @@ export async function run(
       continue;
     }
 
-    const url = buildUrl(argv.urlConfig, lead);
-
     // Prepare templateData with dynamic values, allowing argv.templateData to override
-    const currentTemplateData: Record<string, string | number | boolean | null | undefined> = {
-      first_name: lead.first_name || '',
-      campaign: argv.urlConfig.staticParams.utm_campaign || '',
-      action_url: url || '',
-      ...argv.templateData, // User-provided templateData last to allow user overrides
-    };
+    const currentTemplateData: Record<string, string | UrlConfig> = {};
+
+    // Dynamically add lead properties
+    for (const key of Array.from(leadServiceReservedKeys)) {
+      if (Object.prototype.hasOwnProperty.call(lead, key)) {
+        currentTemplateData[key] = (lead as any)[key];
+      }
+    }
+
+    // User-provided templateData last to allow user overrides for non-reserved keys
+    Object.assign(currentTemplateData, argv.templateData);
 
     let personalizedHtml = htmlTemplate;
     let personalizedSubject = argv.subject;
@@ -56,14 +76,24 @@ export async function run(
     for (const key in currentTemplateData) {
       if (Object.prototype.hasOwnProperty.call(currentTemplateData, key)) {
         const value = currentTemplateData[key];
-        personalizedHtml = personalizedHtml.replace(
-          new RegExp(`{{${key}}}`, 'g'),
-          String(value || '')
-        );
-        personalizedSubject = personalizedSubject.replace(
-          new RegExp(`{{${key}}}`, 'g'),
-          String(value || '')
-        );
+        if (typeof value === "string") {
+          personalizedHtml = personalizedHtml.replace(
+            new RegExp(`{{${key}}}`, 'g'),
+            String(value || '')
+          );
+          personalizedSubject = personalizedSubject.replace(
+            new RegExp(`{{${key}}}`, 'g'),
+            String(value || '')
+          );
+          continue;
+        }
+
+        if (isUrlConfig(value as Object)) {
+          personalizedHtml = personalizedHtml.replace(
+            new RegExp(`{{${key}}}`, 'g'),
+            String(buildUrl(value as UrlConfig, lead) || '')
+          );
+        }
       }
     }
 
@@ -143,8 +173,7 @@ export async function main() {
               forceSend,
               subject: argv.subject as string,
               textBody: argv.textBody as string,
-              templateData: JSON.parse(argv.templateData as string),
-              urlConfig: JSON.parse(argv.urlConfig as string),
+              templateData: JSON.parse(argv.templateData as string, customReviver),
             },
             config
           );
@@ -194,3 +223,18 @@ export async function main() {
 if (require.main === module) {
   main();
 }
+
+function customReviver(
+  key: string,
+  value: unknown
+): Record<string, string | UrlConfig | number | boolean | null | undefined> | unknown {
+  if (key === '') { // Top-level object
+    return value;
+  }
+  if (typeof value === 'object' && value !== null && 'baseUrl' in value && 'staticParams' in value && 'dbParamMapping' in value) {
+    return value as UrlConfig;
+  }
+  return value;
+}
+
+
