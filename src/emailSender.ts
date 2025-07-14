@@ -6,6 +6,21 @@ import { createLeadService } from './services/leadService';
 import { Config } from './services/configService';
 import { UrlConfig } from './utils/url';
 
+interface PostmarkApiError extends Error {
+  statusCode?: number;
+  code?: number;
+}
+
+function isPostmarkApiError(error: unknown): error is PostmarkApiError {
+  return (
+    error instanceof Error &&
+    (error.name === 'ApiInputError' ||
+      error.name === 'ApiError' ||
+      error.name === 'InvalidMessageError') &&
+    typeof (error as PostmarkApiError).code === 'number'
+  );
+}
+
 export async function sendEmails(options: {
   from: string;
   htmlTemplatePath: string;
@@ -66,15 +81,29 @@ export async function sendEmails(options: {
       lead
     );
 
-    await client.sendEmail({
-      From: options.from,
-      To: lead.email,
-      HtmlBody: personalizedHtml,
-      Subject: personalizedSubject,
-      TextBody: options.textBody || personalizedText,
-    });
+    try {
+      await client.sendEmail({
+        From: options.from,
+        To: lead.email,
+        HtmlBody: personalizedHtml,
+        Subject: personalizedSubject,
+        TextBody: options.textBody || personalizedText,
+      });
 
-    console.log(`Email sent to recipient.`);
-    piiLog(`Email sent to ${lead.email}`);
+      piiLog(`Email sent to ${lead.email}`);
+    } catch (error: unknown) {
+      if (isPostmarkApiError(error)) {
+        console.error(
+          `Postmark API Error (Code: ${error.code}, Status: ${error.statusCode}): ${error.message}`
+        );
+        process.exit(1);
+      } else if (error instanceof Error) {
+        console.error(`An unexpected error occurred: ${error.message}`);
+        process.exit(1);
+      } else {
+        console.error(`An unknown error occurred.`);
+        process.exit(1);
+      }
+    }
   }
 }
