@@ -5,21 +5,7 @@ import { processTemplate } from './utils/templateProcessor';
 import { createLeadService } from './services/leadService';
 import { Config } from './services/configService';
 import { UrlConfig } from './utils/url';
-
-interface PostmarkApiError extends Error {
-  statusCode?: number;
-  code?: number;
-}
-
-function isPostmarkApiError(error: unknown): error is PostmarkApiError {
-  return (
-    error instanceof Error &&
-    (error.name === 'ApiInputError' ||
-      error.name === 'ApiError' ||
-      error.name === 'InvalidMessageError') &&
-    typeof (error as PostmarkApiError).code === 'number'
-  );
-}
+import { ApiInputError, PostmarkError } from 'postmark/dist/client/errors/Errors';
 
 export async function sendEmails(options: {
   from: string;
@@ -92,7 +78,7 @@ export async function sendEmails(options: {
 
       piiLog(`Email sent to ${lead.email}`);
     } catch (error: unknown) {
-      if (isPostmarkApiError(error)) {
+      if (error instanceof PostmarkError) {
         console.error(
           `Postmark API Error (Code: ${error.code}, Status: ${error.statusCode}): ${error.message}`
         );
