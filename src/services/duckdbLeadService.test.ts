@@ -105,11 +105,14 @@ describe('DuckDbLeadService', () => {
       dbPath: testDbPath,
     };
     const service = new DuckDbLeadService(config, dummyHeaderMapping, mockLeadSchema);
-    const leads = await service.getLeads();
+    const result = await service.getLeads();
 
-    expect(Array.isArray(leads)).toBe(true);
-    expect(leads.length).toBeGreaterThan(0);
-    expect(leads[0].first_name).toBe('John');
+    expect(Array.isArray(result.validLeads)).toBe(true);
+    expect(result.validLeads.length).toBeGreaterThan(0);
+    expect(result.validLeads[0].first_name).toBe('John');
+    expect(result.totalRecords).toBe(1);
+    expect(result.validRecords).toBe(1);
+    expect(result.invalidRecords).toBe(0);
   });
 
   it('should filter out invalid leads', async () => {
@@ -128,9 +131,14 @@ describe('DuckDbLeadService', () => {
       dbPath: testDbPath,
     };
     const service = new DuckDbLeadService(config, dummyHeaderMapping, mockLeadSchema);
-    const leads = await service.getLeads();
-    expect(leads.length).toBe(1); // Only the valid lead should remain
-    expect(leads[0].first_name).toBe('John');
+    const result = await service.getLeads();
+    expect(result.validLeads.length).toBe(1); // Only the valid lead should remain
+    expect(result.validLeads[0].first_name).toBe('John');
+    expect(result.totalRecords).toBe(2);
+    expect(result.validRecords).toBe(1);
+    expect(result.invalidRecords).toBe(1);
+    expect(result.errorsByType).toHaveProperty('format');
+    expect(result.errorsByType.format).toBe(1);
   });
 
   it('should return reserved template keys from DuckDB schema', async () => {

@@ -1,8 +1,17 @@
 import Ajv, { ValidateFunction } from 'ajv';
 import { OpenAPIV3 } from 'openapi-types';
+import { piiLog } from '../utils/piiLogger';
 
 export interface Lead {
   [key: string]: string | null | undefined | number | boolean;
+}
+
+export interface LeadValidationResult {
+  validLeads: Array<{ [key: string]: string | null | undefined }>;
+  totalRecords: number;
+  validRecords: number;
+  invalidRecords: number;
+  errorsByType: Record<string, number>;
 }
 
 export abstract class LeadService {
@@ -17,6 +26,7 @@ export abstract class LeadService {
       useDefaults: true,
       coerceTypes: true,
       strict: true,
+      allErrors: true, // Collect all errors, not just the first one
     });
     this.ajv.addFormat('email', /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/);
     this.ajv.addVocabulary([
@@ -39,13 +49,49 @@ export abstract class LeadService {
 
   protected abstract _getRawLeads(): Promise<Array<Record<string, string | null | undefined>>>;
 
-  public async getLeads(): Promise<Array<{ [key: string]: string | null | undefined }>> {
+  public async getLeads(): Promise<LeadValidationResult> {
     const rawLeads = await this._getRawLeads();
 
-    // validate and transform each lead
-    const leads = rawLeads.filter((rawLeadData) => this.validateLead(rawLeadData));
+    const validLeads: Array<{ [key: string]: string | null | undefined }> = [];
+    const totalRecords = rawLeads.length;
+    let validRecords = 0;
+    let invalidRecords = 0;
+    const errorsByType: Record<string, number> = {};
 
-    return leads;
+    for (const rawLeadData of rawLeads) {
+      const isValid = this.validateLead(rawLeadData);
+      if (isValid) {
+        validLeads.push(rawLeadData);
+        validRecords++;
+      } else {
+        invalidRecords++;
+        if (this.validateLead.errors) {
+          piiLog(`Invalid lead data: ${JSON.stringify(rawLeadData)}`);
+          piiLog(`Validation errors: ${JSON.stringify(this.validateLead.errors)}`);
+          for (const error of this.validateLead.errors) {
+            const errorType = error.keyword || 'unknown';
+            errorsByType[errorType] = (errorsByType[errorType] || 0) + 1;
+          }
+        } else {
+          piiLog(`Invalid lead data (no specific errors reported): ${JSON.stringify(rawLeadData)}`);
+          errorsByType['unknown'] = (errorsByType['unknown'] || 0) + 1;
+        }
+      }
+    }
+
+    if (invalidRecords > 0 && process.env.ENABLE_PII_LOGGING !== 'true') {
+      console.warn(
+        `Warning: ${invalidRecords} records had validation errors. Set ENABLE_PII_LOGGING=true in your .env file to see detailed error information in pii.log.`
+      );
+    }
+
+    return {
+      validLeads,
+      totalRecords,
+      validRecords,
+      invalidRecords,
+      errorsByType,
+    };
   }
 
   public getReservedTemplateKeys(): Promise<Set<string>> {

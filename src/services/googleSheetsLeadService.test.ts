@@ -185,11 +185,14 @@ describe('GoogleSheetsLeadService', () => {
       googleSheetsSpreadsheetId: 'test-id',
     };
     const service = new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema);
-    const leads = await service.getLeads();
-    expect(leads).toHaveLength(1);
-    expect(leads[0].company).toBe('My Pet Store');
-    expect(leads[0].first_name).toBe('FirstName');
-    expect(leads[0].notes).toBe('test note');
+    const result = await service.getLeads();
+    expect(result.validLeads).toHaveLength(1);
+    expect(result.validLeads[0].company).toBe('My Pet Store');
+    expect(result.validLeads[0].first_name).toBe('FirstName');
+    expect(result.validLeads[0].notes).toBe('test note');
+    expect(result.totalRecords).toBe(1);
+    expect(result.validRecords).toBe(1);
+    expect(result.invalidRecords).toBe(0);
     expect(mockGetValues).toHaveBeenCalledWith('test-id', 'A1:Z');
   });
 
@@ -205,9 +208,13 @@ describe('GoogleSheetsLeadService', () => {
       googleSheetsSpreadsheetId: 'test-id',
     };
     const service = new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema);
-    const leads = await service.getLeads();
-    expect(leads).toHaveLength(1);
-    expect(leads[0].email).toBe('valid@example.com');
+    const result = await service.getLeads();
+    expect(result.validLeads).toHaveLength(1);
+    expect(result.validLeads[0].email).toBe('valid@example.com');
+    expect(result.totalRecords).toBe(2);
+    expect(result.validRecords).toBe(1);
+    expect(result.invalidRecords).toBe(1);
+    expect(result.errorsByType).toHaveProperty('format');
   });
 
   it('should correctly parse lead data with the new header mapping using URL and sheet name', async () => {
@@ -242,11 +249,14 @@ describe('GoogleSheetsLeadService', () => {
       googleSheetsSheetName: 'data',
     };
     const service = new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema);
-    const leads = await service.getLeads();
-    expect(leads).toHaveLength(1);
-    expect(leads[0].company).toBe('Another Pet Store');
-    expect(leads[0].first_name).toBe('Jane');
-    expect(leads[0].notes).toBe('another note');
+    const result = await service.getLeads();
+    expect(result.validLeads).toHaveLength(1);
+    expect(result.validLeads[0].company).toBe('Another Pet Store');
+    expect(result.validLeads[0].first_name).toBe('Jane');
+    expect(result.validLeads[0].notes).toBe('another note');
+    expect(result.totalRecords).toBe(1);
+    expect(result.validRecords).toBe(1);
+    expect(result.invalidRecords).toBe(0);
     expect(mockGetValues).toHaveBeenCalledWith('spreadsheet_id_from_url', 'data!A1:Z');
   });
 

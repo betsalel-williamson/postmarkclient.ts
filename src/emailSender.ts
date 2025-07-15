@@ -27,7 +27,20 @@ export async function sendEmails(options: {
     options.headerMapping,
     options.leadSchema
   );
-  const leads = await leadService.getLeads();
+  const validationResult = await leadService.getLeads();
+  const leads = validationResult.validLeads;
+
+  console.log(`\n--- Lead Validation Summary ---`);
+  console.log(`Total records processed: ${validationResult.totalRecords}`);
+  console.log(`Valid records: ${validationResult.validRecords}`);
+  console.log(`Invalid records: ${validationResult.invalidRecords}`);
+  if (validationResult.invalidRecords > 0) {
+    console.log(`Errors by type:`);
+    for (const errorType in validationResult.errorsByType) {
+      console.log(`  - ${errorType}: ${validationResult.errorsByType[errorType]}`);
+    }
+  }
+  console.log(`-------------------------------\n`);
 
   const htmlTemplate = await fs.readFile(options.htmlTemplatePath, 'utf-8');
 

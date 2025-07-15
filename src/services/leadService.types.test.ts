@@ -51,23 +51,33 @@ describe('LeadService (Abstract Class)', () => {
 
   const dummyHeaderMapping = {}; // Not directly used in these tests, but required by constructor
 
-  it('should correctly filter leads with invalid email format', async () => {
+  it('should correctly filter leads with invalid email format and report stats', async () => {
     const rawData = [{ email: 'valid@example.com' }, { email: 'invalid-email' }];
     const service = new MockLeadService(dummyHeaderMapping, mockLeadSchema, rawData);
-    const leads = await service.getLeads();
-    expect(leads).toHaveLength(1);
-    expect(leads[0].email).toBe('valid@example.com');
+    const result = await service.getLeads();
+    expect(result.validLeads).toHaveLength(1);
+    expect(result.validLeads[0].email).toBe('valid@example.com');
+    expect(result.totalRecords).toBe(2);
+    expect(result.validRecords).toBe(1);
+    expect(result.invalidRecords).toBe(1);
+    expect(result.errorsByType).toHaveProperty('format');
+    expect(result.errorsByType.format).toBe(1);
   });
 
-  it('should correctly filter leads with missing required email', async () => {
+  it('should correctly filter leads with missing required email and report stats', async () => {
     const rawData = [
       { email: 'valid@example.com' },
       { first_name: 'John' }, // Missing email
     ];
     const service = new MockLeadService(dummyHeaderMapping, mockLeadSchema, rawData);
-    const leads = await service.getLeads();
-    expect(leads).toHaveLength(1);
-    expect(leads[0].email).toBe('valid@example.com');
+    const result = await service.getLeads();
+    expect(result.validLeads).toHaveLength(1);
+    expect(result.validLeads[0].email).toBe('valid@example.com');
+    expect(result.totalRecords).toBe(2);
+    expect(result.validRecords).toBe(1);
+    expect(result.invalidRecords).toBe(1);
+    expect(result.errorsByType).toHaveProperty('required');
+    expect(result.errorsByType.required).toBe(1);
   });
 
   it('should correctly filter leads for company exceeding maxLength', async () => {
@@ -76,9 +86,14 @@ describe('LeadService (Abstract Class)', () => {
       { email: 'test@example.com', company: 'a'.repeat(129) }, // Exceeds maxLength
     ];
     const service = new MockLeadService(dummyHeaderMapping, mockLeadSchema, rawData);
-    const leads = await service.getLeads();
-    expect(leads).toHaveLength(1);
-    expect(leads[0].company).toBe('Short Company');
+    const result = await service.getLeads();
+    expect(result.validLeads).toHaveLength(1);
+    expect(result.validLeads[0].company).toBe('Short Company');
+    expect(result.totalRecords).toBe(2);
+    expect(result.validRecords).toBe(1);
+    expect(result.invalidRecords).toBe(1);
+    expect(result.errorsByType).toHaveProperty('maxLength');
+    expect(result.errorsByType.maxLength).toBe(1);
   });
 
   it('should correctly filter leads for notes exceeding maxLength', async () => {
@@ -87,17 +102,25 @@ describe('LeadService (Abstract Class)', () => {
       { email: 'test@example.com', notes: 'a'.repeat(5001) }, // Exceeds maxLength
     ];
     const service = new MockLeadService(dummyHeaderMapping, mockLeadSchema, rawData);
-    const leads = await service.getLeads();
-    expect(leads).toHaveLength(1);
-    expect(leads[0].notes).toBe('Short notes');
+    const result = await service.getLeads();
+    expect(result.validLeads).toHaveLength(1);
+    expect(result.validLeads[0].notes).toBe('Short notes');
+    expect(result.totalRecords).toBe(2);
+    expect(result.validRecords).toBe(1);
+    expect(result.invalidRecords).toBe(1);
+    expect(result.errorsByType).toHaveProperty('maxLength');
+    expect(result.errorsByType.maxLength).toBe(1);
   });
 
   it('should return a valid lead for valid data', async () => {
     const rawData = [{ email: 'valid@example.com', first_name: 'Test', company: 'Test Company' }];
     const service = new MockLeadService(dummyHeaderMapping, mockLeadSchema, rawData);
-    const leads = await service.getLeads();
-    expect(leads).toHaveLength(1);
-    expect(leads[0].email).toBe('valid@example.com');
+    const result = await service.getLeads();
+    expect(result.validLeads).toHaveLength(1);
+    expect(result.validLeads[0].email).toBe('valid@example.com');
+    expect(result.totalRecords).toBe(1);
+    expect(result.validRecords).toBe(1);
+    expect(result.invalidRecords).toBe(0);
   });
 
   it('should return reserved template keys from schema properties', async () => {
@@ -130,13 +153,17 @@ describe('LeadService (Abstract Class)', () => {
   ])('should validate product interest %s to %s', async (input, expected) => {
     const rawData = [{ email: 'test@example.com', product_interest: input }];
     const service = new MockLeadService(dummyHeaderMapping, mockLeadSchema, rawData);
-    const leads = await service.getLeads();
+    const result = await service.getLeads();
 
     if (expected === undefined) {
-      expect(leads).toHaveLength(0); // Invalid leads should be filtered
+      expect(result.validLeads).toHaveLength(0); // Invalid leads should be filtered
+      expect(result.invalidRecords).toBe(1);
+      expect(result.errorsByType).toHaveProperty('enum');
     } else {
-      expect(leads).toHaveLength(1);
-      expect(leads[0].product_interest).toBe(expected);
+      expect(result.validLeads).toHaveLength(1);
+      expect(result.validLeads[0].product_interest).toBe(expected);
+      expect(result.validRecords).toBe(1);
+      expect(result.invalidRecords).toBe(0);
     }
   });
 });
