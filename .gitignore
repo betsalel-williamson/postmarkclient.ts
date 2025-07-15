@@ -6,6 +6,7 @@
 *.log
 pii.log
 .env
+coverage/
 
 # User-specific
 u[0-9]*.sh
