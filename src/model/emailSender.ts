@@ -2,9 +2,9 @@ import { ServerClient } from 'postmark';
 import * as fs from 'fs/promises';
 import { PostmarkError } from 'postmark/dist/client/errors/Errors';
 import { OpenAPIV3 } from 'openapi-types';
-import { logError, logWarn, logValidationSummary } from '../view/consoleOutput';
-import { createLeadService, Config } from './services';
 import { piiLog, processTemplate, UrlConfig } from './utils';
+import { Config, createLeadService } from './services';
+import { logError, logValidationSummary, logWarn } from '../view';
 
 export async function sendEmails(options: {
   from: string;

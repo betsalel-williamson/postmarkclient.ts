@@ -1,7 +1,7 @@
 import Ajv, { ValidateFunction } from 'ajv';
 import { OpenAPIV3 } from 'openapi-types';
-import { piiLog } from '../utils/piiLogger';
-import { logWarn } from '../../view/consoleOutput';
+import { piiLog } from '../utils/';
+import { logWarn } from '../../view/';
 
 export interface Lead {
   [key: string]: string | null | undefined | number | boolean;

@@ -1,12 +1,8 @@
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 import * as fs from 'fs/promises';
-import { getConfig } from '../model/services';
-import { sendEmails } from '../model';
-import { customReviver } from '../model/utils';
-import { CampaignConfig } from '../model/types';
-import { loadSchema } from '../model/utils';
-import { logError } from '../view/consoleOutput';
+import { CampaignConfig, customReviver, getConfig, loadSchema, sendEmails } from '../model';
+import { logError } from '../view';
 
 export async function main() {
   try {
