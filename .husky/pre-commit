@@ -1,4 +1,2 @@
-npm run format
-npm run build
-npm test
+npm run precommit-checks
 git update-index --again

@@ -16,6 +16,7 @@
     "format": "prettier --write . && markdownlint-cli2 --fix",
     "lint:md": "markdownlint-cli2",
     "lint": "eslint --ext .js,.ts .",
+    "precommit-checks": "npm run format && npm run lint && npm run build && npm test",
     "migrate:add-customer-notes": "ts-node scripts/addCustomerFacingNotesColumn.ts",
     "smoke:test": "ENABLE_PII_LOGGING=true bash ./examples/send-command-example.sh"
   },
