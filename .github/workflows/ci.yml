@@ -58,7 +58,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y jq
 
           # Define paths to coverage report files
-          COVERAGE_JSON_FILE="coverage/coverage-final.json"
+          COVERAGE_JSON_FILE="coverage/coverage-summary.json"
           COVERAGE_TEXT_FILE="coverage/text-report.md" # This will contain the Markdown table
 
           TOTAL_COVERAGE_PERCENT="N/A"

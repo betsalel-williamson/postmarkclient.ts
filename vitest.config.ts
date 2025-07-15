@@ -10,7 +10,7 @@ export default defineConfig({
       reporter: [
         'text',
         ['text', { file: 'text-report.md' }], // Outputs a text table to a file (for summary embedding)
-        'json',
+        ['json-summary', { file: 'coverage-summary.json' }],
         'html',
         'lcov',
         'text-summary',
