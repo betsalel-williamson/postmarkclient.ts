@@ -53,13 +53,15 @@ export async function sendEmails(options: {
 
   for (const lead of leads) {
     if (!lead.email) {
-      logWarn(`Skipping lead with no email: ${lead.first_name} ${lead.last_name}`);
+      logWarn(`Skipping lead with no email`);
+      piiLog(`Skipping lead with no email: ${lead.first_name} ${lead.last_name}`);
       continue;
     }
 
     const messages = await client.getOutboundMessages({ count: 1, recipient: lead.email });
     if (Number(messages.TotalCount) > 0 && !options.forceSend?.includes(lead.email)) {
-      logWarn(`Email already sent to ${lead.email}, skipping.`);
+      logWarn(`Email already sent to recipient, skipping.`);
+      piiLog(`Email already sent to ${lead.email}, skipping.`);
       continue;
     }
 

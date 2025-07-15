@@ -41,4 +41,5 @@ npm start -- send "saul@willcos.us" "./dist/templates/b2b-template.html" \
     "cell_phone": "phone_number",
     "product_interest": "product_interest",
     "customer_notes": "notes"
-  }'
+  }' \
+  --lead-schema-path "./src/schemas/lead/lead.yaml"
