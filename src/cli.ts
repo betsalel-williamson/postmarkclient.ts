@@ -4,6 +4,8 @@ import * as fs from 'fs/promises';
 import { getConfig } from './services/configService';
 import { sendEmails } from './emailSender';
 import { customReviver } from './utils/templateProcessor';
+import { CampaignConfig } from './types/CampaignConfig';
+import { loadSchema } from './utils/schemaLoader';
 
 export async function main() {
   try {
@@ -61,6 +63,11 @@ export async function main() {
               type: 'string',
               demandOption: true,
             })
+            .option('lead-schema-path', {
+              describe: 'Path to the OpenAPI YAML file defining the lead schema',
+              type: 'string',
+              demandOption: true,
+            })
             .group(['google-sheets-url', 'google-sheets-sheet-name'], 'Google Sheets Options:')
             .group(['db-path'], 'DuckDB Options:')
             .conflicts('google-sheets-url', 'db-path')
@@ -68,6 +75,7 @@ export async function main() {
         },
         async (argv) => {
           const forceSend = argv.forceSend?.split(',').map((email) => email.trim());
+          const leadSchema = await loadSchema(argv.leadSchemaPath as string);
           await sendEmails({
             from: argv.from as string,
             htmlTemplatePath: argv.htmlTemplatePath as string,
@@ -75,9 +83,10 @@ export async function main() {
             forceSend,
             subject: argv.subject as string,
             textBody: argv.textBody as string,
+            config: config,
             templateData: JSON.parse(argv.templateData as string, customReviver),
             headerMapping: JSON.parse(argv.headerMapping as string),
-            config: config,
+            leadSchema: leadSchema,
           });
         }
       )
@@ -93,17 +102,35 @@ export async function main() {
         async (argv) => {
           try {
             const configContent = await fs.readFile(argv.configFilePath as string, 'utf-8');
-            const runConfig = JSON.parse(configContent);
-            // Handle forceSend if it's a comma-separated string in the config file
-            if (typeof runConfig.forceSend === 'string') {
-              runConfig.forceSend = runConfig.forceSend
-                .split(',')
-                .map((email: string) => email.trim());
+            const runConfig: CampaignConfig = JSON.parse(configContent);
+            const {
+              templateData,
+              headerMapping,
+              forceSend: rawForceSend,
+              leadSchemaPath,
+              ...restOfRunConfig
+            } = runConfig;
+
+            const leadSchema = await loadSchema(leadSchemaPath as string);
+
+            let processedForceSend: string[] | undefined;
+            if (typeof rawForceSend === 'string') {
+              processedForceSend = rawForceSend.split(',').map((email) => email.trim());
+            } else if (Array.isArray(rawForceSend)) {
+              processedForceSend = rawForceSend.map((email) => email.trim());
             }
-            if (!runConfig.headerMapping) {
+
+            if (!headerMapping) {
               throw new Error('headerMapping is required in the config file.');
             }
-            await sendEmails({ ...runConfig, config: config });
+            await sendEmails({
+              forceSend: processedForceSend,
+              ...restOfRunConfig,
+              config: config,
+              templateData,
+              headerMapping,
+              leadSchema,
+            });
           } catch (error) {
             if (error instanceof Error) {
               console.error(`Error reading or parsing config file: ${error.message}`);

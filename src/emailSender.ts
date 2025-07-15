@@ -5,7 +5,8 @@ import { processTemplate } from './utils/templateProcessor';
 import { createLeadService } from './services/leadService';
 import { Config } from './services/configService';
 import { UrlConfig } from './utils/url';
-import { ApiInputError, PostmarkError } from 'postmark/dist/client/errors/Errors';
+import { PostmarkError } from 'postmark/dist/client/errors/Errors';
+import { OpenAPIV3 } from 'openapi-types';
 
 export async function sendEmails(options: {
   from: string;
@@ -17,11 +18,15 @@ export async function sendEmails(options: {
   templateData: Record<string, string | UrlConfig>;
   headerMapping: Record<string, string>;
   config: Config;
+  leadSchema: OpenAPIV3.Document;
 }) {
-  const currentConfig = { ...options.config, headerMapping: options.headerMapping };
-
-  const client = new ServerClient(currentConfig.postmarkServerToken);
-  const leadService = createLeadService(options.source, currentConfig);
+  const client = new ServerClient(options.config.postmarkServerToken);
+  const leadService = createLeadService(
+    options.source,
+    options.config,
+    options.headerMapping,
+    options.leadSchema
+  );
   const leads = await leadService.getLeads();
 
   const htmlTemplate = await fs.readFile(options.htmlTemplatePath, 'utf-8');

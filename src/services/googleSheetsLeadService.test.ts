@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GoogleSheetsLeadService } from './googleSheetsLeadService';
 import { Config } from './configService';
-import { Lead } from './leadService.types';
+import { OpenAPIV3 } from 'openapi-types';
 
 let mockGetValues = vi.fn();
 
@@ -16,7 +16,7 @@ vi.mock('./googleSheetsApi', () => {
 });
 
 describe('GoogleSheetsLeadService', () => {
-  const dummyHeaderMapping: Record<string, keyof Lead> = {
+  const dummyHeaderMapping: Record<string, string> = {
     company: 'company',
     title: 'title',
     first_name: 'first_name',
@@ -25,6 +25,34 @@ describe('GoogleSheetsLeadService', () => {
     cell_phone: 'phone_number',
     product_interest: 'product_interest',
     customer_notes: 'notes',
+  };
+
+  const mockLeadSchema: OpenAPIV3.Document = {
+    openapi: '3.0.0',
+    info: {
+      title: 'Lead Schema',
+      version: '1.0.0',
+    },
+    paths: {},
+    components: {
+      schemas: {
+        Lead: {
+          type: 'object',
+          properties: {
+            first_name: { type: 'string' },
+            last_name: { type: 'string' },
+            email: { type: 'string', format: 'email' },
+            phone_number: { type: 'string' },
+            company: { type: 'string' },
+            title: { type: 'string' },
+            product_interest: { type: 'string', enum: ['cat', 'dog', 'cat+dog'] },
+            notes: { type: 'string' },
+            customer_facing_notes: { type: 'string' },
+          },
+          required: ['email'],
+        },
+      },
+    },
   };
 
   // Reset mock before each test to avoid interference
@@ -67,9 +95,8 @@ describe('GoogleSheetsLeadService', () => {
     const config: Config = {
       postmarkServerToken: 'test-token',
       googleSheetsSpreadsheetId: 'test-id',
-      headerMapping: dummyHeaderMapping,
     };
-    expect(() => new GoogleSheetsLeadService(config)).toThrow(
+    expect(() => new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema)).toThrow(
       'GOOGLE_GCP_CREDENTIALS_PATH not set in .env file'
     );
   });
@@ -78,9 +105,8 @@ describe('GoogleSheetsLeadService', () => {
     const config: Config = {
       postmarkServerToken: 'test-token',
       googleSheetsKeyFilePath: 'test-path',
-      headerMapping: dummyHeaderMapping,
     };
-    expect(() => new GoogleSheetsLeadService(config)).toThrow(
+    expect(() => new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema)).toThrow(
       'Either GOOGLE_SHEETS_SPREADSHEET_ID or both GOOGLE_SHEETS_URL and GOOGLE_SHEETS_SHEET_NAME must be set in .env file'
     );
   });
@@ -94,9 +120,8 @@ describe('GoogleSheetsLeadService', () => {
       postmarkServerToken: 'test-token',
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsSpreadsheetId: 'test-id',
-      headerMapping: dummyHeaderMapping,
     };
-    const service = new GoogleSheetsLeadService(config);
+    const service = new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema);
     await expect(service.getLeads()).rejects.toThrow('Headers must be unique.');
   });
 
@@ -109,9 +134,8 @@ describe('GoogleSheetsLeadService', () => {
       postmarkServerToken: 'test-token',
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsSpreadsheetId: 'test-id',
-      headerMapping: dummyHeaderMapping,
     };
-    const service = new GoogleSheetsLeadService(config);
+    const service = new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema);
     await expect(service.getLeads()).rejects.toThrow("The first column must be '#'.");
   });
 
@@ -125,9 +149,8 @@ describe('GoogleSheetsLeadService', () => {
       postmarkServerToken: 'test-token',
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsSpreadsheetId: 'test-id',
-      headerMapping: dummyHeaderMapping,
     };
-    const service = new GoogleSheetsLeadService(config);
+    const service = new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema);
     await expect(service.getLeads()).rejects.toThrow('Missing ID for row 3');
   });
 
@@ -160,9 +183,8 @@ describe('GoogleSheetsLeadService', () => {
       postmarkServerToken: 'test-token',
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsSpreadsheetId: 'test-id',
-      headerMapping: dummyHeaderMapping,
     };
-    const service = new GoogleSheetsLeadService(config);
+    const service = new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema);
     const leads = await service.getLeads();
     expect(leads).toHaveLength(1);
     expect(leads[0].company).toBe('My Pet Store');
@@ -201,9 +223,8 @@ describe('GoogleSheetsLeadService', () => {
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsUrl: 'https://docs.google.com/spreadsheets/d/spreadsheet_id_from_url/edit',
       googleSheetsSheetName: 'data',
-      headerMapping: dummyHeaderMapping,
     };
-    const service = new GoogleSheetsLeadService(config);
+    const service = new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema);
     const leads = await service.getLeads();
     expect(leads).toHaveLength(1);
     expect(leads[0].company).toBe('Another Pet Store');
@@ -219,9 +240,8 @@ describe('GoogleSheetsLeadService', () => {
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsUrl: 'invalid-url',
       googleSheetsSheetName: 'data',
-      headerMapping: dummyHeaderMapping,
     };
-    const service = new GoogleSheetsLeadService(config);
+    const service = new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema);
     await expect(service.getLeads()).rejects.toThrow('Invalid Google Sheets URL provided.');
   });
 
@@ -232,9 +252,8 @@ describe('GoogleSheetsLeadService', () => {
       postmarkServerToken: 'test-token',
       googleSheetsKeyFilePath: 'test-path',
       googleSheetsSpreadsheetId: 'test-id',
-      headerMapping: dummyHeaderMapping,
     };
-    const service = new GoogleSheetsLeadService(config);
+    const service = new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema);
     const reservedKeys = await service.getReservedTemplateKeys();
     expect(reservedKeys).toEqual(
       new Set([

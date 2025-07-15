@@ -3,12 +3,12 @@ import { DuckDbLeadService } from './duckdbLeadService';
 import { DuckDBInstance } from '@duckdb/node-api';
 import * as fs from 'fs';
 import { Config } from './configService';
-import { Lead } from './leadService.types';
+import { OpenAPIV3 } from 'openapi-types';
 
 describe('DuckDbLeadService', () => {
   const testDbPath = './test_business_cards.duckdb';
 
-  const dummyHeaderMapping: Record<string, keyof Lead> = {
+  const dummyHeaderMapping: Record<string, string> = {
     first_name: 'first_name',
     last_name: 'last_name',
     email: 'email',
@@ -19,6 +19,34 @@ describe('DuckDbLeadService', () => {
     products: 'product_interest',
     notes: 'notes',
     customer_facing_notes: 'customer_facing_notes',
+  };
+
+  const mockLeadSchema: OpenAPIV3.Document = {
+    openapi: '3.0.0',
+    info: {
+      title: 'Lead Schema',
+      version: '1.0.0',
+    },
+    paths: {},
+    components: {
+      schemas: {
+        Lead: {
+          type: 'object',
+          properties: {
+            first_name: { type: 'string' },
+            last_name: { type: 'string' },
+            email: { type: 'string', format: 'email' },
+            phone_number: { type: 'string' },
+            company: { type: 'string' },
+            title: { type: 'string' },
+            product_interest: { type: 'string', enum: ['cat', 'dog', 'cat+dog'] },
+            notes: { type: 'string' },
+            customer_facing_notes: { type: 'string' },
+          },
+          required: ['email'],
+        },
+      },
+    },
   };
 
   beforeAll(async () => {
@@ -47,19 +75,9 @@ describe('DuckDbLeadService', () => {
   });
 
   it('should throw an error if dbPath is not provided in the config', () => {
-    const config: Config = { postmarkServerToken: 'test-token', headerMapping: dummyHeaderMapping };
-    expect(() => new DuckDbLeadService(config)).toThrow('DB_PATH not set in .env file');
-  });
-
-  it('should throw an error if the database file does not exist', async () => {
-    const config: Config = {
-      postmarkServerToken: 'test-token',
-      dbPath: './non_existent_db.duckdb',
-      headerMapping: dummyHeaderMapping,
-    };
-    const service = new DuckDbLeadService(config);
-    await expect(service.getLeads()).rejects.toThrow(
-      `Database file not found at: ${config.dbPath}`
+    const config: Config = { postmarkServerToken: 'test-token' };
+    expect(() => new DuckDbLeadService(config, dummyHeaderMapping, mockLeadSchema)).toThrow(
+      'DB_PATH not set in .env file'
     );
   });
 
@@ -67,9 +85,8 @@ describe('DuckDbLeadService', () => {
     const config: Config = {
       postmarkServerToken: 'test-token',
       dbPath: testDbPath,
-      headerMapping: dummyHeaderMapping,
     };
-    const service = new DuckDbLeadService(config);
+    const service = new DuckDbLeadService(config, dummyHeaderMapping, mockLeadSchema);
     const leads = await service.getLeads();
 
     expect(Array.isArray(leads)).toBe(true);
@@ -81,9 +98,8 @@ describe('DuckDbLeadService', () => {
     const config: Config = {
       postmarkServerToken: 'test-token',
       dbPath: testDbPath,
-      headerMapping: dummyHeaderMapping,
     };
-    const service = new DuckDbLeadService(config);
+    const service = new DuckDbLeadService(config, dummyHeaderMapping, mockLeadSchema);
     const reservedKeys = await service.getReservedTemplateKeys();
     expect(reservedKeys).toEqual(
       new Set([

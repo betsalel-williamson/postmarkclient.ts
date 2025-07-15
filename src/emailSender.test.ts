@@ -7,7 +7,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { sendEmails } from './emailSender';
-import { UrlConfig } from './utils/url';
+import { OpenAPIV3 } from 'openapi-types';
 
 vi.mock('./services/googleSheetsApi');
 
@@ -17,34 +17,50 @@ describe('Email Sender', () => {
     googleSheetsKeyFilePath: 'test-path',
     googleSheetsSpreadsheetId: 'test-id',
     dbPath: 'test-db-path',
-    headerMapping: {
-      company: 'company',
-      title: 'title',
-      first_name: 'first_name',
-      last_name: 'last_name',
-      email: 'email',
-      cell_phone: 'phone_number',
-      product_interest: 'product_interest',
-      customer_notes: 'notes',
+  };
+
+  const dummyHeaderMapping: Record<string, string> = {
+    company: 'company',
+    title: 'title',
+    first_name: 'first_name',
+    last_name: 'last_name',
+    email: 'email',
+    cell_phone: 'phone_number',
+    product_interest: 'product_interest',
+    customer_notes: 'notes',
+  };
+
+  const mockLeadSchema: OpenAPIV3.Document = {
+    openapi: '3.0.0',
+    info: {
+      title: 'Lead Schema',
+      version: '1.0.0',
+    },
+    paths: {},
+    components: {
+      schemas: {
+        Lead: {
+          type: 'object',
+          properties: {
+            first_name: { type: 'string' },
+            last_name: { type: 'string' },
+            email: { type: 'string', format: 'email' },
+            phone_number: { type: 'string' },
+            company: { type: 'string' },
+            title: { type: 'string' },
+            product_interest: { type: 'string', enum: ['cat', 'dog', 'cat+dog'] },
+            notes: { type: 'string' },
+            customer_facing_notes: { type: 'string' },
+          },
+          required: ['email'],
+        },
+      },
     },
   };
 
   let tempHtmlFilePath: string;
   let sendEmailMock: ReturnType<typeof vi.fn>;
   let mockGetValues: ReturnType<typeof vi.fn>;
-
-  const createMockUrlConfig = (overrides?: Partial<UrlConfig>): UrlConfig => ({
-    baseUrl: overrides?.baseUrl || 'https://example.com/pages/b2b-marketing-opt-in',
-    searchParams: {
-      utm_source: 'postmark',
-      utm_medium: 'email',
-      utm_campaign: 'test_campaign',
-      first_name: '{{first_name}}',
-      'custom#company': '{{company}}',
-      'custom#what_type_of_products_are_you_interested_in': '{{product_interest}}',
-      ...overrides?.searchParams,
-    },
-  });
 
   // Helper to get expected reserved keys dynamically
   const getExpectedReservedKeys = (googleSheetHeaders: string[]) => {
@@ -135,9 +151,10 @@ describe('Email Sender', () => {
       source: 'google-sheets',
       subject: 'Test Subject',
       textBody: 'Test Text Body',
-      templateData: {},
-      headerMapping: baseConfig.headerMapping!, // Use non-null assertion
       config: baseConfig,
+      templateData: {},
+      headerMapping: dummyHeaderMapping,
+      leadSchema: mockLeadSchema,
     });
 
     expect(sendEmailMock).not.toHaveBeenCalled();
@@ -157,12 +174,22 @@ describe('Email Sender', () => {
       forceSend: ['john.doe@example.com'],
       subject: 'Test Subject',
       textBody: 'Test Text Body',
+      config: baseConfig,
       templateData: {
         campaign: 'test_campaign',
-        action_url: createMockUrlConfig(),
+        action_url: {
+          baseUrl: 'https://example.com/pages/b2b-marketing-opt-in',
+          searchParams: {
+            utm_source: 'postmark',
+            utm_medium: 'email',
+            utm_campaign: 'test_campaign',
+            first_name: '{{first_name}}',
+            'custom#company': '{{company}}',
+          },
+        },
       },
-      headerMapping: baseConfig.headerMapping!, // Pass headerMapping
-      config: baseConfig,
+      headerMapping: dummyHeaderMapping,
+      leadSchema: mockLeadSchema,
     });
 
     expect(sendEmailMock).toHaveBeenCalled();
@@ -186,12 +213,22 @@ describe('Email Sender', () => {
       htmlTemplatePath: tempHtmlFilePath,
       source: 'google-sheets',
       subject: 'Test Subject',
+      config: baseConfig,
       templateData: {
         campaign: 'test_campaign',
-        action_url: createMockUrlConfig(),
+        action_url: {
+          baseUrl: 'https://example.com/pages/b2b-marketing-opt-in',
+          searchParams: {
+            utm_source: 'postmark',
+            utm_medium: 'email',
+            utm_campaign: 'test_campaign',
+            first_name: '{{first_name}}',
+            'custom#company': '{{company}}',
+          },
+        },
       },
-      headerMapping: baseConfig.headerMapping!, // Pass headerMapping
-      config: baseConfig,
+      headerMapping: dummyHeaderMapping,
+      leadSchema: mockLeadSchema,
     });
 
     expect(sendEmailMock).toHaveBeenCalledOnce();
@@ -228,8 +265,9 @@ describe('Email Sender', () => {
           },
         },
       },
-      headerMapping: baseConfig.headerMapping!, // Use non-null assertion
       config: baseConfig,
+      headerMapping: dummyHeaderMapping,
+      leadSchema: mockLeadSchema,
     });
 
     expect(sendEmailMock).toHaveBeenCalledOnce();
@@ -258,11 +296,12 @@ describe('Email Sender', () => {
       htmlTemplatePath: tempHtmlFilePath,
       source: 'google-sheets',
       subject: customSubject,
+      config: baseConfig,
       templateData: {
         campaign: 'test_campaign',
       },
-      headerMapping: baseConfig.headerMapping!, // Pass headerMapping
-      config: baseConfig,
+      headerMapping: dummyHeaderMapping,
+      leadSchema: mockLeadSchema,
     });
 
     expect(sendEmailMock).toHaveBeenCalledOnce();
@@ -281,7 +320,6 @@ describe('Email Sender', () => {
       first_name: 'UserProvidedFirstName', // Conflicts with auto-generated
     };
 
-    const mockUrlConf = createMockUrlConfig();
     // Updated expectedReservedKeys to include #
     const expectedReservedKeys = getExpectedReservedKeys([
       '#',
@@ -306,9 +344,10 @@ describe('Email Sender', () => {
         htmlTemplatePath: tempHtmlFilePath,
         source: 'google-sheets',
         subject: 'Test Subject',
-        templateData: conflictingTemplateData,
-        headerMapping: baseConfig.headerMapping!, // Pass headerMapping
         config: baseConfig,
+        templateData: conflictingTemplateData,
+        headerMapping: dummyHeaderMapping,
+        leadSchema: mockLeadSchema,
       })
     ).rejects.toThrow(expectedErrorMessage);
   });
@@ -325,7 +364,6 @@ describe('Email Sender', () => {
       [customUrlKey]: 'UserProvidedUrl',
     };
 
-    const mockUrlConf = createMockUrlConfig({});
     // Updated expectedReservedKeys to include #
     const expectedReservedKeys = getExpectedReservedKeys([
       '#',
@@ -350,9 +388,10 @@ describe('Email Sender', () => {
         htmlTemplatePath: tempHtmlFilePath,
         source: 'google-sheets',
         subject: 'Test Subject',
-        templateData: conflictingTemplateData,
-        headerMapping: baseConfig.headerMapping!, // Pass headerMapping
         config: baseConfig,
+        templateData: conflictingTemplateData,
+        headerMapping: dummyHeaderMapping,
+        leadSchema: mockLeadSchema,
       })
     ).rejects.toThrow(expectedErrorMessage);
   });

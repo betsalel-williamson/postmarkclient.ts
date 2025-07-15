@@ -1,9 +1,6 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { Lead } from '../services/leadService.types';
-import { UrlConfig } from '../utils/url'; // Import UrlConfig
-
 export interface Config {
   postmarkServerToken: string;
   googleSheetsKeyFilePath?: string;
@@ -11,8 +8,6 @@ export interface Config {
   googleSheetsUrl?: string;
   googleSheetsSheetName?: string;
   dbPath?: string;
-  headerMapping?: Record<string, string>; // CLI arg
-  templateData?: Record<string, string | UrlConfig>; // CLI arg
 }
 
 export function getConfig(): Config {

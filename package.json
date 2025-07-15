@@ -15,6 +15,7 @@
     "test": "vitest run",
     "format": "prettier --write . && markdownlint-cli2 --fix",
     "lint:md": "markdownlint-cli2",
+    "lint": "eslint --ext .js,.ts .",
     "migrate:add-customer-notes": "ts-node scripts/addCustomerFacingNotesColumn.ts",
     "smoke:test": "ENABLE_PII_LOGGING=true bash ./examples/send-command-example.sh"
   },
@@ -24,18 +25,27 @@
   "type": "commonjs",
   "dependencies": {
     "@duckdb/node-api": "^1.3.2-alpha.24",
+    "@types/js-yaml": "^4.0.9",
+    "ajv": "^8.17.1",
     "dotenv": "^17.1.0",
     "google-auth-library": "^10.1.0",
     "googleapis": "^152.0.0",
     "html-to-text": "^9.0.5",
+    "js-yaml": "^4.1.0",
+    "openapi-types": "^12.1.3",
     "postmark": "^4.0.5",
     "yargs": "^18.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.31.0",
     "@types/html-to-text": "^9.0.4",
     "@types/node": "^24.0.10",
     "@types/yargs": "^17.0.33",
     "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.1",
+    "globals": "^16.3.0",
     "husky": "^9.1.7",
     "markdownlint-cli2": "^0.18.1",
     "mjml": "^4.7.1",
@@ -43,6 +53,7 @@
     "prettier": "^3.6.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.37.0",
     "vitest": "^3.2.4"
   }
 }

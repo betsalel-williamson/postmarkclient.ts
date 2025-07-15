@@ -1,0 +1,41 @@
+openapi: 3.1.0
+info:
+  title: Lead Schema
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    Lead:
+      type: object
+      properties:
+        first_name:
+          type: string
+          nullable: true
+        last_name:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        phone_number:
+          type: string
+          nullable: true
+        company:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        product_interest:
+          type: string
+          enum: ['cat', 'dog', 'cat+dog']
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        customer_facing_notes:
+          type: string
+          nullable: true
+      required:
+        - email

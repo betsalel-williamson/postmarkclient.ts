@@ -19,10 +19,9 @@ describe('CLI', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(process, 'exit').mockImplementation((() => {
       throw new Error('process.exit was called');
-    }) as any);
+    }) as () => never);
     vi.mocked(configService.getConfig).mockReturnValue({
       postmarkServerToken: 'test-token',
-      headerMapping: {},
     });
     vi.mocked(emailSender.sendEmails).mockResolvedValue(undefined);
   });
@@ -48,7 +47,9 @@ describe('CLI', () => {
       '--template-data',
       '{"key":"value"}',
       '--header-mapping',
-      '{"header":"map"}'
+      '{"header":"map"}',
+      '--lead-schema-path',
+      './src/schemas/lead/lead.yaml'
     );
 
     await main();
@@ -64,8 +65,8 @@ describe('CLI', () => {
       headerMapping: { header: 'map' },
       config: {
         postmarkServerToken: 'test-token',
-        headerMapping: {},
       },
+      leadSchema: expect.any(Object),
     });
   });
 
@@ -78,6 +79,7 @@ describe('CLI', () => {
       templateData: { configKey: 'configValue' },
       headerMapping: { configHeader: 'configMap' },
       forceSend: 'user1@example.com,user2@example.com',
+      leadSchemaPath: './src/schemas/lead/lead.yaml',
     };
     tempConfigFilePath = path.join(os.tmpdir(), 'test-config.json');
     await fs.writeFile(tempConfigFilePath, JSON.stringify(configContent));
@@ -96,8 +98,8 @@ describe('CLI', () => {
       forceSend: ['user1@example.com', 'user2@example.com'],
       config: {
         postmarkServerToken: 'test-token',
-        headerMapping: {},
       },
+      leadSchema: expect.any(Object),
     });
   });
 
@@ -114,9 +116,9 @@ describe('CLI', () => {
 
     process.argv.push('send-from-config', tempConfigFilePath);
 
-    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('process.exit was called');
-    }) as any);
+    });
 
     await expect(main()).rejects.toThrow('process.exit was called');
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -136,7 +138,9 @@ describe('CLI', () => {
       '--google-sheets-url',
       'http://example.com',
       '--db-path',
-      './test.duckdb'
+      './test.duckdb',
+      '--lead-schema-path',
+      './src/schemas/lead/lead.yaml'
     );
 
     await expect(main()).rejects.toThrow(

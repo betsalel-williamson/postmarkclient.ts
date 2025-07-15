@@ -1,14 +1,19 @@
 import { validateAndTransformLead } from '../utils/validation';
-import { DuckDBInstance } from '@duckdb/node-api';
-import { Lead, LeadService } from './leadService.types';
+import { DuckDBInstance, DuckDBValue } from '@duckdb/node-api';
+import { LeadService } from './leadService.types';
 import * as fs from 'fs';
 import { Config } from './configService';
+import { OpenAPIV3 } from 'openapi-types';
 
 export class DuckDbLeadService extends LeadService {
   private config: Config;
 
-  constructor(config: Config) {
-    super(config);
+  constructor(
+    config: Config,
+    headerMapping: Record<string, string>,
+    leadSchema: OpenAPIV3.Document
+  ) {
+    super(headerMapping, leadSchema);
 
     if (!config.dbPath) {
       throw new Error('DB_PATH not set in .env file');
@@ -29,7 +34,7 @@ export class DuckDbLeadService extends LeadService {
       const reader = await connection.runAndReadAll(
         "SELECT column_name FROM information_schema.columns WHERE table_name = 'stg_cards_data' ORDER BY ordinal_position;"
       );
-      const columns = reader.getRows().map((row: any) => row[0]);
+      const columns = reader.getRows().map((row) => row[0] as string);
       const superHeaders = await super.getReservedTemplateKeys();
       return new Set([...columns, ...superHeaders]);
     } finally {
@@ -51,16 +56,16 @@ export class DuckDbLeadService extends LeadService {
       const columnReader = await connection.runAndReadAll(
         "SELECT column_name FROM information_schema.columns WHERE table_name = 'stg_cards_data' ORDER BY ordinal_position;"
       );
-      const columnNames: string[] = columnReader.getRows().map((row: any) => row[0]);
+      const columnNames: DuckDBValue[] = columnReader.getRows().map((row) => row[0]);
 
       // Select all data
       const dataReader = await connection.runAndReadAll('SELECT * FROM stg_cards_data');
-      const rawRows = dataReader.getRows();
+      const rawRows: DuckDBValue[][] = dataReader.getRows();
 
-      const leads = rawRows.map((row: any[]) => {
-        const rawLeadData: { [key: string]: any } = {};
+      const leads = rawRows.map((row) => {
+        const rawLeadData: { [key: string]: string } = {};
         columnNames.forEach((colName, index) => {
-          rawLeadData[colName] = row[index];
+          rawLeadData[colName as string] = row[index] as string;
         });
 
         const validated = validateAndTransformLead(rawLeadData);

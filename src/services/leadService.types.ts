@@ -1,40 +1,43 @@
-import { Config } from './configService';
+import Ajv, { ValidateFunction } from 'ajv';
+import { OpenAPIV3 } from 'openapi-types';
 
 export interface Lead {
-  first_name: string | null;
-  last_name: string | null;
-  email: string | null;
-  phone_number: string | null;
-  company: string | null;
-  title: string | null;
-  product_interest: 'cat' | 'dog' | 'cat+dog' | null;
-  notes: string | null;
-  customer_facing_notes: string | null;
+  [key: string]: string | null | undefined | number | boolean;
 }
 
 export abstract class LeadService {
   protected _headerMapping: Record<string, string>;
-  constructor(config: Config) {
-    this._headerMapping = config.headerMapping!;
+  protected ajv: Ajv;
+  protected validateLead: ValidateFunction;
+  protected leadSchema: OpenAPIV3.Document;
+
+  constructor(headerMapping: Record<string, string>, leadSchema: OpenAPIV3.Document) {
+    this._headerMapping = headerMapping;
+    this.ajv = new Ajv();
+    this.ajv.addVocabulary([
+      // OpenAPI root elements
+      'components',
+      'externalDocs',
+      'info',
+      'openapi',
+      'paths',
+      'security',
+      'servers',
+      // OpenAPI Request/Response (relative) root element
+      'content',
+    ]);
+    this.validateLead = this.ajv.compile(leadSchema);
+    this.leadSchema = leadSchema;
   }
 
-  abstract getLeads(options?: {
-    [key: string]: any;
-  }): Promise<{ [key: string]: string | null | undefined }[]>;
+  abstract getLeads(
+    options?: Record<string, unknown>
+  ): Promise<{ [key: string]: string | null | undefined }[]>;
 
   getReservedTemplateKeys(): Promise<Set<string>> {
-    return Promise.resolve(
-      new Set<keyof Lead>([
-        'first_name',
-        'last_name',
-        'email',
-        'phone_number',
-        'company',
-        'title',
-        'product_interest',
-        'notes',
-        'customer_facing_notes',
-      ])
-    );
+    const schemaProperties = (this.leadSchema.components?.schemas?.Lead as OpenAPIV3.SchemaObject)
+      .properties;
+    const reservedKeys = new Set<string>(Object.keys(schemaProperties || {}));
+    return Promise.resolve(reservedKeys);
   }
 }

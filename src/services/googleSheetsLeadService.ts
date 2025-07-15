@@ -1,13 +1,18 @@
-import { Lead, LeadService } from './leadService.types';
+import { LeadService } from './leadService.types';
 import { GoogleSheetsApi } from './googleSheetsApi';
 import { Config } from './configService';
 import { validateAndTransformLead } from '../utils/validation';
+import { OpenAPIV3 } from 'openapi-types';
 
 export class GoogleSheetsLeadService extends LeadService {
   private config: Config;
 
-  constructor(config: Config) {
-    super(config);
+  constructor(
+    config: Config,
+    headerMapping: Record<string, string>,
+    leadSchema: OpenAPIV3.Document
+  ) {
+    super(headerMapping, leadSchema);
 
     if (!config.googleSheetsKeyFilePath) {
       throw new Error('GOOGLE_GCP_CREDENTIALS_PATH not set in .env file');
@@ -21,11 +26,7 @@ export class GoogleSheetsLeadService extends LeadService {
         'Either GOOGLE_SHEETS_SPREADSHEET_ID or both GOOGLE_SHEETS_URL and GOOGLE_SHEETS_SHEET_NAME must be set in .env file'
       );
     }
-    if (!config.headerMapping) {
-      throw new Error('headerMapping not provided in config.');
-    }
     this.config = config;
-    this._headerMapping = config.headerMapping;
   }
 
   private async _getHeaders(): Promise<string[]> {

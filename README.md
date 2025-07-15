@@ -62,3 +62,35 @@ For detailed usage examples and configuration, please refer to the `examples/` d
 ## Development
 
 For development instructions, including how to run tests and build the project, please refer to [DEVELOPMENT.md](DEVELOPMENT.md).
+
+## Security & PII
+
+This project handles sensitive information and offers PII (Personally Identifiable Information) logging capabilities. Understanding how configuration is managed and PII is handled is crucial for secure operation.
+
+### Configuration Management
+
+Configuration is strictly separated into two categories:
+
+1. **Sensitive/Environment-Specific (`.env` file):** This file, located at the project root, stores all credentials, API keys, and paths to sensitive files. It is **`.gitignore`d** to prevent accidental commitment to version control. Examples include `POSTMARK_API_TOKEN`, `GOOGLE_GCP_CREDENTIALS_PATH`, and database paths.
+
+   _Always ensure your `.env` file is not committed to your repository._
+
+2. **Non-Sensitive/Project-Specific/Campaign-Specific (CLI arguments or `config.json`):** This includes all campaign-related settings such as the 'from' email address, HTML template path, subject lines, template data for personalization, and header mappings. These are safe to store in configuration files or pass via command-line arguments.
+
+   _Never place sensitive credentials directly in `config.json` or as direct CLI arguments._
+
+### PII Logging
+
+For debugging and auditing purposes, this application includes an optional PII logging feature. When enabled, certain PII (e.g., recipient email addresses) will be written to a local log file (`pii.log`).
+
+- **Enabling PII Logging:** Set the `ENABLE_PII_LOGGING` environment variable to `true` in your `.env` file:
+
+  ```dotenv
+  ENABLE_PII_LOGGING="true"
+  ```
+
+- **Log File Location:** The `pii.log` file will be created in the project's root directory.
+
+- **Security Warning:** The `pii.log` file contains sensitive data and is **`.gitignore`d**. Exercise extreme caution when handling this file. Do not share it or commit it to version control. Ensure it is regularly reviewed and securely deleted when no longer needed.
+
+  _It is your responsibility to manage the security of the `pii.log` file._
