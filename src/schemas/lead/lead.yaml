@@ -17,16 +17,17 @@ components:
         email:
           type: string
           format: email
-          nullable: true
         phone_number:
           type: string
           nullable: true
         company:
           type: string
           nullable: true
+          maxLength: 128
         title:
           type: string
           nullable: true
+          maxLength: 128
         product_interest:
           type: string
           enum: ['cat', 'dog', 'cat+dog']
@@ -34,6 +35,7 @@ components:
         notes:
           type: string
           nullable: true
+          maxLength: 5000
         customer_facing_notes:
           type: string
           nullable: true

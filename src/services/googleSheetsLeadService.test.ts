@@ -193,6 +193,23 @@ describe('GoogleSheetsLeadService', () => {
     expect(mockGetValues).toHaveBeenCalledWith('test-id', 'A1:Z');
   });
 
+  it('should filter out invalid leads', async () => {
+    mockGetValues.mockResolvedValueOnce([
+      ['#', 'email'],
+      ['1', 'valid@example.com'],
+      ['2', 'invalid-email'], // Invalid email format
+    ]);
+    const config: Config = {
+      postmarkServerToken: 'test-token',
+      googleSheetsKeyFilePath: 'test-path',
+      googleSheetsSpreadsheetId: 'test-id',
+    };
+    const service = new GoogleSheetsLeadService(config, dummyHeaderMapping, mockLeadSchema);
+    const leads = await service.getLeads();
+    expect(leads).toHaveLength(1);
+    expect(leads[0].email).toBe('valid@example.com');
+  });
+
   it('should correctly parse lead data with the new header mapping using URL and sheet name', async () => {
     mockGetValues.mockResolvedValueOnce([
       [

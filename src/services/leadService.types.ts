@@ -13,7 +13,12 @@ export abstract class LeadService {
 
   constructor(headerMapping: Record<string, string>, leadSchema: OpenAPIV3.Document) {
     this._headerMapping = headerMapping;
-    this.ajv = new Ajv();
+    this.ajv = new Ajv({
+      useDefaults: true,
+      coerceTypes: true,
+      strict: true,
+    });
+    this.ajv.addFormat('email', /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/);
     this.ajv.addVocabulary([
       // OpenAPI root elements
       'components',
@@ -26,15 +31,24 @@ export abstract class LeadService {
       // OpenAPI Request/Response (relative) root element
       'content',
     ]);
-    this.validateLead = this.ajv.compile(leadSchema);
+    this.validateLead = this.ajv.compile(
+      leadSchema.components?.schemas?.Lead as OpenAPIV3.SchemaObject
+    );
     this.leadSchema = leadSchema;
   }
 
-  abstract getLeads(
-    options?: Record<string, unknown>
-  ): Promise<{ [key: string]: string | null | undefined }[]>;
+  protected abstract _getRawLeads(): Promise<Array<Record<string, string | null | undefined>>>;
 
-  getReservedTemplateKeys(): Promise<Set<string>> {
+  public async getLeads(): Promise<Array<{ [key: string]: string | null | undefined }>> {
+    const rawLeads = await this._getRawLeads();
+
+    // validate and transform each lead
+    const leads = rawLeads.filter((rawLeadData) => this.validateLead(rawLeadData));
+
+    return leads;
+  }
+
+  public getReservedTemplateKeys(): Promise<Set<string>> {
     const schemaProperties = (this.leadSchema.components?.schemas?.Lead as OpenAPIV3.SchemaObject)
       .properties;
     const reservedKeys = new Set<string>(Object.keys(schemaProperties || {}));

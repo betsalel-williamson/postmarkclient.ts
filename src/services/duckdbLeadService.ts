@@ -1,4 +1,3 @@
-import { validateAndTransformLead } from '../utils/validation';
 import { DuckDBInstance, DuckDBValue } from '@duckdb/node-api';
 import { LeadService } from './leadService.types';
 import * as fs from 'fs';
@@ -42,7 +41,7 @@ export class DuckDbLeadService extends LeadService {
     }
   }
 
-  public async getLeads() {
+  async _getRawLeads() {
     const dbPath = this.config.dbPath as string;
     if (!fs.existsSync(dbPath)) {
       throw new Error(`Database file not found at: ${dbPath}`);
@@ -63,32 +62,11 @@ export class DuckDbLeadService extends LeadService {
       const rawRows: DuckDBValue[][] = dataReader.getRows();
 
       const leads = rawRows.map((row) => {
-        const rawLeadData: { [key: string]: string } = {};
+        const rawLeadData: { [key: string]: string | null | undefined } = {};
         columnNames.forEach((colName, index) => {
-          rawLeadData[colName as string] = row[index] as string;
+          rawLeadData[colName as string] = row[index] as string | null | undefined;
         });
-
-        const validated = validateAndTransformLead(rawLeadData);
-
-        // Start with validated data, then overlay raw data, then specific mappings
-        const lead = {
-          ...rawLeadData, // Include all raw data
-          ...validated, // Overlay validated/transformed data
-          // Explicit mappings for core Lead properties, ensuring correct types
-          first_name: rawLeadData.first_name as string | null,
-          last_name: rawLeadData.last_name as string | null,
-          email: rawLeadData.email as string | null,
-          phone_number: (rawLeadData.cell || rawLeadData.phone) as string | null,
-          company: (validated.company || rawLeadData.company) as string | null,
-          title: (validated.title || rawLeadData.title) as string | null,
-          product_interest: validated.product_interest,
-          notes: (validated.notes || rawLeadData.notes) as string | null,
-          customer_facing_notes: rawLeadData.customer_facing_notes as string | null,
-          // Ensure '#' is included if it exists in rawLeadData
-          '#': rawLeadData['#'] as string | null | undefined,
-        };
-
-        return lead;
+        return rawLeadData;
       });
       return leads;
     } finally {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { DuckDbLeadService } from './duckdbLeadService';
 import { DuckDBInstance } from '@duckdb/node-api';
 import * as fs from 'fs';
@@ -74,6 +74,24 @@ describe('DuckDbLeadService', () => {
     }
   });
 
+  beforeEach(async () => {
+    if (fs.existsSync(testDbPath)) {
+      fs.unlinkSync(testDbPath);
+    }
+    const instance = await DuckDBInstance.create(testDbPath);
+    const connection = await instance.connect();
+    try {
+      await connection.run(
+        'CREATE TABLE stg_cards_data (first_name VARCHAR, last_name VARCHAR, email VARCHAR, cell VARCHAR, phone VARCHAR, company VARCHAR, title VARCHAR, products VARCHAR, notes VARCHAR, customer_facing_notes VARCHAR);'
+      );
+      await connection.run(
+        "INSERT INTO stg_cards_data VALUES ('John', 'Doe', 'john.doe@example.com', '123-456-7890', null, 'ACME Inc', 'CEO', 'cat', 'Test note', null)"
+      );
+    } finally {
+      await connection.disconnectSync();
+    }
+  });
+
   it('should throw an error if dbPath is not provided in the config', () => {
     const config: Config = { postmarkServerToken: 'test-token' };
     expect(() => new DuckDbLeadService(config, dummyHeaderMapping, mockLeadSchema)).toThrow(
@@ -94,6 +112,27 @@ describe('DuckDbLeadService', () => {
     expect(leads[0].first_name).toBe('John');
   });
 
+  it('should filter out invalid leads', async () => {
+    const instance = await DuckDBInstance.create(testDbPath);
+    const connection = await instance.connect();
+    try {
+      await connection.run(
+        `INSERT INTO stg_cards_data VALUES ('Invalid', 'Lead', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)`
+      );
+    } finally {
+      await connection.disconnectSync();
+    }
+
+    const config: Config = {
+      postmarkServerToken: 'test-token',
+      dbPath: testDbPath,
+    };
+    const service = new DuckDbLeadService(config, dummyHeaderMapping, mockLeadSchema);
+    const leads = await service.getLeads();
+    expect(leads.length).toBe(1); // Only the valid lead should remain
+    expect(leads[0].first_name).toBe('John');
+  });
+
   it('should return reserved template keys from DuckDB schema', async () => {
     const config: Config = {
       postmarkServerToken: 'test-token',
@@ -103,18 +142,18 @@ describe('DuckDbLeadService', () => {
     const reservedKeys = await service.getReservedTemplateKeys();
     expect(reservedKeys).toEqual(
       new Set([
+        'cell',
+        'company',
+        'customer_facing_notes',
+        'email',
         'first_name',
         'last_name',
-        'email',
-        'cell',
-        'phone',
-        'phone_number',
-        'product_interest',
-        'company',
-        'title',
-        'products',
         'notes',
-        'customer_facing_notes',
+        'phone_number',
+        'phone',
+        'product_interest',
+        'products',
+        'title',
       ])
     );
   });

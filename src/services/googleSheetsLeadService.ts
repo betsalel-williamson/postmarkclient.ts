@@ -1,7 +1,6 @@
 import { LeadService } from './leadService.types';
 import { GoogleSheetsApi } from './googleSheetsApi';
 import { Config } from './configService';
-import { validateAndTransformLead } from '../utils/validation';
 import { OpenAPIV3 } from 'openapi-types';
 
 export class GoogleSheetsLeadService extends LeadService {
@@ -60,7 +59,7 @@ export class GoogleSheetsLeadService extends LeadService {
     return new Set([...headers, ...superHeaders]);
   }
 
-  public async getLeads() {
+  async _getRawLeads() {
     const api = new GoogleSheetsApi(this.config.googleSheetsKeyFilePath as string);
 
     let spreadsheetId = this.config.googleSheetsSpreadsheetId;
@@ -103,15 +102,7 @@ export class GoogleSheetsLeadService extends LeadService {
       headers.forEach((header, i) => {
         rawLeadData[this._headerMapping[header]] = row[i] || null;
       });
-
-      const validated = validateAndTransformLead(rawLeadData);
-
-      // Construct the Lead object, ensuring all raw data is included
-      const lead = {
-        ...validated, // Overlay validated/transformed data
-      };
-
-      return lead;
+      return rawLeadData;
     });
 
     return leads;
