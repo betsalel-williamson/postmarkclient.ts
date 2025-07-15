@@ -1,5 +1,5 @@
 import { convert } from 'html-to-text';
-import { UrlConfig, buildUrl, isUrlConfig } from './url';
+import { UrlConfig, buildUrl, isUrlConfig } from './';
 
 export function customReviver(
   key: string,

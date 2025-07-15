@@ -1,4 +1,4 @@
-import { LeadService } from './leadService.types';
+import { LeadService } from './baseLeadService';
 import { GoogleSheetsApi } from './googleSheetsApi';
 import { Config } from './configService';
 import { OpenAPIV3 } from 'openapi-types';

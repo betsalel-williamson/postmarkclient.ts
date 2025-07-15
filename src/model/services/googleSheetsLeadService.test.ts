@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { GoogleSheetsLeadService } from './googleSheetsLeadService';
-import { Config } from './configService';
+import { GoogleSheetsLeadService, Config } from './';
 import { OpenAPIV3 } from 'openapi-types';
 
 let mockGetValues = vi.fn();

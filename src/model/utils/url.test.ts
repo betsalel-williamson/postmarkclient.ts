@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildUrl, UrlConfig } from './url';
+import { buildUrl, UrlConfig } from './';
 
 describe('url', () => {
   it('should build a URL with autofill and UTM parameters based on config', () => {

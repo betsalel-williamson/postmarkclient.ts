@@ -1,12 +1,11 @@
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
-import { server } from './mocks/server';
+import { server } from '../mocks/server';
 import { http, HttpResponse } from 'msw';
-import { GoogleSheetsApi } from './services/googleSheetsApi';
-import { Config } from './services/configService';
+import { GoogleSheetsApi, Config } from './services';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { sendEmails } from './emailSender';
+import { sendEmails } from './';
 import { OpenAPIV3 } from 'openapi-types';
 
 vi.mock('./services/googleSheetsApi');

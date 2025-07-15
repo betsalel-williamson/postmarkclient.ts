@@ -1,13 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { main } from './cli';
-import * as emailSender from './emailSender';
-import * as configService from './services/configService';
+import { main } from './main';
+import * as emailSender from '../model/emailSender';
+import * as configService from '../model/services/configService';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 
-vi.mock('./emailSender');
-vi.mock('./services/configService');
+vi.mock('../model/emailSender', () => ({
+  sendEmails: vi.fn(),
+}));
+vi.mock('../model/services/configService', () => ({
+  getConfig: vi.fn(),
+}));
 
 describe('CLI', () => {
   const originalArgv = process.argv;
@@ -110,18 +114,14 @@ describe('CLI', () => {
       source: 'duckdb',
       subject: 'Config Subject',
       templateData: { configKey: 'configValue' },
+      leadSchemaPath: './src/schemas/lead/lead.yaml',
     };
     tempConfigFilePath = path.join(os.tmpdir(), 'test-config-no-header.json');
     await fs.writeFile(tempConfigFilePath, JSON.stringify(configContent));
 
     process.argv.push('send-from-config', tempConfigFilePath);
 
-    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit was called');
-    });
-
-    await expect(main()).rejects.toThrow('process.exit was called');
-    expect(exitSpy).toHaveBeenCalledWith(1);
+    await expect(main()).rejects.toThrow('headerMapping is required in the config file.');
   });
 
   it('should throw an error when mutually exclusive options are provided', async () => {

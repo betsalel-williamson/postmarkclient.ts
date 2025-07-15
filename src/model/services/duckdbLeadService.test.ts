@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { DuckDbLeadService } from './duckdbLeadService';
+import { DuckDbLeadService, Config } from './';
 import { DuckDBInstance } from '@duckdb/node-api';
 import * as fs from 'fs';
-import { Config } from './configService';
 import { OpenAPIV3 } from 'openapi-types';
 
 describe('DuckDbLeadService', () => {

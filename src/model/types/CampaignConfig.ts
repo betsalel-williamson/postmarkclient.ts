@@ -1,4 +1,4 @@
-import { UrlConfig } from '../utils/url';
+import { UrlConfig } from '../utils';
 
 export interface CampaignConfig {
   description: string;

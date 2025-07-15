@@ -1,8 +1,4 @@
-import { LeadService } from './leadService.types';
-import { DuckDbLeadService } from './duckdbLeadService';
-
-import { GoogleSheetsLeadService } from './googleSheetsLeadService';
-import { Config } from './configService';
+import { DuckDbLeadService, GoogleSheetsLeadService, Config, LeadService } from './';
 import { OpenAPIV3 } from 'openapi-types';
 
 export function createLeadService(

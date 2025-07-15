@@ -1,5 +1,5 @@
 import { DuckDBInstance, DuckDBValue } from '@duckdb/node-api';
-import { LeadService } from './leadService.types';
+import { LeadService } from './baseLeadService';
 import * as fs from 'fs';
 import { Config } from './configService';
 import { OpenAPIV3 } from 'openapi-types';

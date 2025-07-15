@@ -1,6 +1,7 @@
 import Ajv, { ValidateFunction } from 'ajv';
 import { OpenAPIV3 } from 'openapi-types';
 import { piiLog } from '../utils/piiLogger';
+import { logWarn } from '../../view/consoleOutput';
 
 export interface Lead {
   [key: string]: string | null | undefined | number | boolean;
@@ -80,7 +81,7 @@ export abstract class LeadService {
     }
 
     if (invalidRecords > 0 && process.env.ENABLE_PII_LOGGING !== 'true') {
-      console.warn(
+      logWarn(
         `Warning: ${invalidRecords} records had validation errors. Set ENABLE_PII_LOGGING=true in your .env file to see detailed error information in pii.log.`
       );
     }

@@ -1,11 +1,12 @@
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 import * as fs from 'fs/promises';
-import { getConfig } from './services/configService';
-import { sendEmails } from './emailSender';
-import { customReviver } from './utils/templateProcessor';
-import { CampaignConfig } from './types/CampaignConfig';
-import { loadSchema } from './utils/schemaLoader';
+import { getConfig } from '../model/services';
+import { sendEmails } from '../model';
+import { customReviver } from '../model/utils';
+import { CampaignConfig } from '../model/types';
+import { loadSchema } from '../model/utils';
+import { logError } from '../view/consoleOutput';
 
 export async function main() {
   try {
@@ -133,9 +134,11 @@ export async function main() {
             });
           } catch (error) {
             if (error instanceof Error) {
-              console.error(`Error reading or parsing config file: ${error.message}`);
+              logError(`Error reading or parsing config file: ${error.message}`);
+            } else {
+              logError(`An unknown error occurred: ${error}`);
             }
-            process.exit(1);
+            throw error;
           }
         }
       )
@@ -147,7 +150,7 @@ export async function main() {
       .parseAsync();
   } catch (error) {
     if (error instanceof Error) {
-      console.error(`Error: ${error.message}`);
+      logError(`Error: ${error.message}`);
       throw error; // Re-throw the error for testing
     } else {
       throw error; // Re-throw unknown errors as well

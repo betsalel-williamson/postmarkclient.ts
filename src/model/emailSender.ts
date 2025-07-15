@@ -1,12 +1,10 @@
 import { ServerClient } from 'postmark';
 import * as fs from 'fs/promises';
-import { piiLog } from './utils/piiLogger';
-import { processTemplate } from './utils/templateProcessor';
-import { createLeadService } from './services/leadService';
-import { Config } from './services/configService';
-import { UrlConfig } from './utils/url';
 import { PostmarkError } from 'postmark/dist/client/errors/Errors';
 import { OpenAPIV3 } from 'openapi-types';
+import { logError, logWarn, logValidationSummary } from '../view/consoleOutput';
+import { createLeadService, Config } from './services';
+import { piiLog, processTemplate, UrlConfig } from './utils';
 
 export async function sendEmails(options: {
   from: string;
@@ -30,17 +28,12 @@ export async function sendEmails(options: {
   const validationResult = await leadService.getLeads();
   const leads = validationResult.validLeads;
 
-  console.log(`\n--- Lead Validation Summary ---`);
-  console.log(`Total records processed: ${validationResult.totalRecords}`);
-  console.log(`Valid records: ${validationResult.validRecords}`);
-  console.log(`Invalid records: ${validationResult.invalidRecords}`);
-  if (validationResult.invalidRecords > 0) {
-    console.log(`Errors by type:`);
-    for (const errorType in validationResult.errorsByType) {
-      console.log(`  - ${errorType}: ${validationResult.errorsByType[errorType]}`);
-    }
-  }
-  console.log(`-------------------------------\n`);
+  logValidationSummary(
+    validationResult.totalRecords,
+    validationResult.validRecords,
+    validationResult.invalidRecords,
+    validationResult.errorsByType
+  );
 
   const htmlTemplate = await fs.readFile(options.htmlTemplatePath, 'utf-8');
 
@@ -60,13 +53,13 @@ export async function sendEmails(options: {
 
   for (const lead of leads) {
     if (!lead.email) {
-      console.warn(`Skipping lead with no email: ${lead.first_name} ${lead.last_name}`);
+      logWarn(`Skipping lead with no email: ${lead.first_name} ${lead.last_name}`);
       continue;
     }
 
     const messages = await client.getOutboundMessages({ count: 1, recipient: lead.email });
     if (Number(messages.TotalCount) > 0 && !options.forceSend?.includes(lead.email)) {
-      console.warn(`Email already sent to ${lead.email}, skipping.`);
+      logWarn(`Email already sent to ${lead.email}, skipping.`);
       continue;
     }
 
@@ -97,16 +90,16 @@ export async function sendEmails(options: {
       piiLog(`Email sent to ${lead.email}`);
     } catch (error: unknown) {
       if (error instanceof PostmarkError) {
-        console.error(
+        logError(
           `Postmark API Error (Code: ${error.code}, Status: ${error.statusCode}): ${error.message}`
         );
-        process.exit(1);
+        throw error;
       } else if (error instanceof Error) {
-        console.error(`An unexpected error occurred: ${error.message}`);
-        process.exit(1);
+        logError(`An unexpected error occurred: ${error.message}`);
+        throw error;
       } else {
-        console.error(`An unknown error occurred.`);
-        process.exit(1);
+        logError(`An unknown error occurred.`);
+        throw error;
       }
     }
   }
