@@ -99,9 +99,8 @@ export async function main() {
         async (argv) => {
           try {
             const configContent = await fs.readFile(argv.configFilePath as string, 'utf-8');
-            const runConfig: CampaignConfig = JSON.parse(configContent);
+            const runConfig: CampaignConfig = JSON.parse(configContent, customReviver);
             const {
-              templateData,
               headerMapping,
               forceSend: rawForceSend,
               leadSchemaPath,
@@ -124,7 +123,7 @@ export async function main() {
               forceSend: processedForceSend,
               ...restOfRunConfig,
               config: config,
-              templateData,
+              templateData: runConfig.templateData,
               headerMapping,
               leadSchema,
             });

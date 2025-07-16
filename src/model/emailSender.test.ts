@@ -394,4 +394,47 @@ describe('Email Sender', () => {
       })
     ).rejects.toThrow(expectedErrorMessage);
   });
+
+  it('should sanitize templateData values before sending email', async () => {
+    server.use(
+      http.get('https://api.postmarkapp.com/messages/outbound', () => {
+        return HttpResponse.json({ TotalCount: 0 });
+      })
+    );
+
+    const maliciousTemplateData = {
+      campaign: '<script>alert("xss with bad_campaign")</script>test_campaign',
+      action_url: {
+        baseUrl: 'https://example.com/safe',
+        searchParams: {
+          param1: 'value1<img src=x onerror=alert(1)>',
+        },
+      },
+    };
+
+    await sendEmails({
+      from: 'test@example.com',
+      htmlTemplatePath: tempHtmlFilePath,
+      source: 'google-sheets',
+      subject: 'Test Subject',
+      config: baseConfig,
+      templateData: maliciousTemplateData,
+      headerMapping: dummyHeaderMapping,
+      leadSchema: mockLeadSchema,
+    });
+
+    expect(sendEmailMock).toHaveBeenCalledOnce();
+    const firstCallArgs = sendEmailMock.mock.calls[0][0];
+
+    // Verify HTML body sanitization
+    expect(firstCallArgs.HtmlBody).not.toContain('<script>alert("xss with bad_campaign")</script>');
+    expect(firstCallArgs.HtmlBody).not.toContain('<img src=x onerror=alert(1)>');
+    expect(firstCallArgs.HtmlBody).toContain('test_campaign');
+    expect(firstCallArgs.HtmlBody).toContain('href="https://example.com/safe?param1=value1"');
+
+    // Verify subject sanitization (if subject uses template data)
+    // Note: Current test setup doesn't use templateData in subject, so this might need adjustment
+    // if subject is also expected to be sanitized via templateData.
+    // For now, we'll just check the HTML body.
+  });
 });

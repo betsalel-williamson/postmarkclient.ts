@@ -2,7 +2,7 @@ import { ServerClient } from 'postmark';
 import * as fs from 'fs/promises';
 import { PostmarkError } from 'postmark/dist/client/errors/Errors';
 import { OpenAPIV3 } from 'openapi-types';
-import { piiLog, processTemplate, UrlConfig } from './utils';
+import { piiLog, processTemplate, UrlConfig, sanitizeObjectStrings } from './utils';
 import { Config, createLeadService } from './services';
 import { logError, logValidationSummary, logWarn } from '../view';
 
@@ -40,7 +40,9 @@ export async function sendEmails(options: {
   const leadServiceReservedKeys = await leadService.getReservedTemplateKeys();
   const reservedTemplateKeys = new Set<string>([...Array.from(leadServiceReservedKeys)]);
 
-  const conflictingKeys = Object.keys(options.templateData).filter((key) =>
+  const sanitizedTemplateData = sanitizeObjectStrings(options.templateData);
+
+  const conflictingKeys = Object.keys(sanitizedTemplateData).filter((key) =>
     reservedTemplateKeys.has(key)
   );
   if (conflictingKeys.length > 0) {
@@ -52,44 +54,45 @@ export async function sendEmails(options: {
   }
 
   for (const lead of leads) {
-    if (!lead.email) {
+    const sanitizedLead = sanitizeObjectStrings(lead);
+    if (!sanitizedLead.email) {
       logWarn(`Skipping lead with no email`);
-      piiLog(`Skipping lead with no email: ${lead.first_name} ${lead.last_name}`);
+      piiLog(`Skipping lead with no email: ${sanitizedLead.first_name} ${sanitizedLead.last_name}`);
       continue;
     }
 
-    const messages = await client.getOutboundMessages({ count: 1, recipient: lead.email });
-    if (Number(messages.TotalCount) > 0 && !options.forceSend?.includes(lead.email)) {
+    const messages = await client.getOutboundMessages({ count: 1, recipient: sanitizedLead.email });
+    if (Number(messages.TotalCount) > 0 && !options.forceSend?.includes(sanitizedLead.email)) {
       logWarn(`Email already sent to recipient, skipping.`);
-      piiLog(`Email already sent to ${lead.email}, skipping.`);
+      piiLog(`Email already sent to ${sanitizedLead.email}, skipping.`);
       continue;
     }
 
     const currentTemplateData: Record<string, string | UrlConfig> = {};
     for (const key of Array.from(leadServiceReservedKeys)) {
-      if (Object.prototype.hasOwnProperty.call(lead, key)) {
-        currentTemplateData[key] = String(lead[key as keyof typeof lead] || '');
+      if (Object.prototype.hasOwnProperty.call(sanitizedLead, key)) {
+        currentTemplateData[key] = String(sanitizedLead[key as keyof typeof sanitizedLead] || '');
       }
     }
-    Object.assign(currentTemplateData, options.templateData);
+    Object.assign(currentTemplateData, sanitizedTemplateData);
 
     const { personalizedHtml, personalizedSubject, personalizedText } = processTemplate(
       htmlTemplate,
       options.subject,
       currentTemplateData,
-      lead
+      sanitizedLead
     );
 
     try {
       await client.sendEmail({
         From: options.from,
-        To: lead.email,
+        To: sanitizedLead.email,
         HtmlBody: personalizedHtml,
         Subject: personalizedSubject,
         TextBody: options.textBody || personalizedText,
       });
 
-      piiLog(`Email sent to ${lead.email}`);
+      piiLog(`Email sent to ${sanitizedLead.email}`);
     } catch (error: unknown) {
       if (error instanceof PostmarkError) {
         logError(
